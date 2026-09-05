@@ -1,0 +1,15 @@
+model User {
+    id String @id @default(uuid())
+    name String 
+    email String @unique
+    phone String @unique
+    passwordHash String
+    role Role @default(CUSTOMER)
+    status UserStatus @default(ACTIVE)
+    nid String @unique
+    dob String
+    isDelete Boolean @default(false)
+
+    @@index([id, email, phone,nid])
+    @@map("users")
+}
