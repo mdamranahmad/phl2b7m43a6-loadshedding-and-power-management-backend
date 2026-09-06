@@ -1,12 +1,18 @@
 enum Role {
     CUSTOMER
     TECHNICIAN
-    SUBSTATIONMANAGER
-    ZONEMANAGER
+    SUBSTATION_MANAGER
+    ZONE_MANAGER
 }
 
 enum UserStatus {
     ACTIVE
     INACTIVE
     BLOCKED
+}
+
+enum TechnicianVerificationStatus {
+    PENDING
+    APPROVED
+    REJECTED
 }

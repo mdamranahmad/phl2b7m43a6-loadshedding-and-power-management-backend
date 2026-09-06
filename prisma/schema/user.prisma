@@ -2,15 +2,23 @@ model User {
     id String @id @default(uuid())
     name String 
     email String @unique
-    phone String @unique
     passwordHash String
     role Role? @default(CUSTOMER)
     status UserStatus? @default(ACTIVE)
     nid String? @unique
     dob String?
-    isDelete Boolean? @default(false)
+    isDeleted Boolean? @default(false)
+    deletedAt DateTime?
     emailVerified Boolean? @default(false)
+    needPasswordChange Boolean @default(true)
+    createdAt DateTime @default(now())
+    updatedat DateTime @updatedAt
 
-    @@index([id, email, phone,nid])
+    customerProfile CustomerProfile?
+    technicianProfile TechnicianProfile?
+    zoneManager ZoneManager?
+    substationManager SubstationManager?
+
+    @@index([id, email])
     @@map("users")
 }
