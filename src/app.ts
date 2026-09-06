@@ -1,9 +1,46 @@
-import express, {type Express, type Request, type Response } from "express";
+import express, { type Express, type Request, type Response } from "express";
+import cors from "cors";
+import { config } from "./app/config/index.js";
+import cookieParser from "cookie-parser";
+import { AuthRoute } from "./app/module/auth/auth.route.js";
+import { sendResponse } from "./app/utils/sendResponse.js";
+import httpStatus from "http-status";
+import { globalErrorHandler } from "./app/middleware/globalErrorHandler.js";
+import { notFound } from "./app/middleware/notfound.js";
 
 const app: Express = express();
 
-app.get("/", (req:Request, res: Response) => {
-    res.send("Welcome to Load Shedding and Power Management System")
-})
+// for Cross Origin Resource Sharing browser security
+app.use(
+    cors({
+        origin: config.frontend_url,
+        credentials: true,
+    }),
+);
+
+// Enable URL-encoded form data parsing
+app.use(express.urlencoded({ extended: true }));
+
+// Middleware to parse JSON Body
+app.use(express.json());
+
+// Middleware to parse cookie
+app.use(cookieParser());
+
+// APIs
+app.use("/api/v1/auth", AuthRoute);
+
+app.get("/", (req: Request, res: Response) => {
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Welcome to Load Shedding and Power Managemetn System",
+        data: null,
+    });
+});
+
+// Global Error Handler and Not Found
+app.use(globalErrorHandler);
+app.use(notFound);
 
 export default app;
