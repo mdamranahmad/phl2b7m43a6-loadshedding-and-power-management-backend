@@ -4,11 +4,12 @@ model User {
     email String @unique
     phone String @unique
     passwordHash String
-    role Role @default(CUSTOMER)
-    status UserStatus @default(ACTIVE)
-    nid String @unique
-    dob String
-    isDelete Boolean @default(false)
+    role Role? @default(CUSTOMER)
+    status UserStatus? @default(ACTIVE)
+    nid String? @unique
+    dob String?
+    isDelete Boolean? @default(false)
+    emailVerified Boolean? @default(false)
 
     @@index([id, email, phone,nid])
     @@map("users")
