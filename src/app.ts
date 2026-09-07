@@ -1,6 +1,6 @@
 import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
-import { config } from "./app/config/index.js";
+import config from "./app/config/index.js";
 import cookieParser from "cookie-parser";
 import { AuthRoute } from "./app/module/auth/auth.route.js";
 import { sendResponse } from "./app/utils/sendResponse.js";

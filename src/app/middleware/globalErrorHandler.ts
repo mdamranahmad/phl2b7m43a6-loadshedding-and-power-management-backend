@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { config } from "../config/index.js";
+import config from "../config/index.js";
 import httpStatus from "http-status";
 import { Prisma } from "../../generated/prisma/client.js";
 import { AppError } from "../utils/AppError.js";

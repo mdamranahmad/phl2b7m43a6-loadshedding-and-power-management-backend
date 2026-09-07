@@ -1,11 +1,12 @@
 import app from "./app.js";
-import { config } from "./app/config/index.js";
+import config from "./app/config/index.js";
 import {
     seedSubstationManager,
     seedTesterTechnician,
     seedZoneManager,
 } from "./app/utils/seed.js";
 import { prisma } from "./lib/prisma.js";
+import { redisClient } from "./lib/redis.js";
 
 const port = config.port;
 
@@ -16,6 +17,8 @@ const main = async () => {
         await seedSubstationManager();
         await seedTesterTechnician();
         console.log("Connected to the database successfully!");
+        await redisClient.connect();
+        console.log("Redis Connected Successfully!");
         app.listen(port, () => {
             console.log(`Server is running on port ${port}!`);
         });

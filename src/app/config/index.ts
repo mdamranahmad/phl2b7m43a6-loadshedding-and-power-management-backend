@@ -3,7 +3,7 @@ import path from "node:path";
 
 dotenv.config({ path: path.join(process.cwd(), ".env") });
 
-export const config = {
+export default {
     node_env: process.env.NODE_ENV,
     port: process.env.PORT,
     database_url: process.env.DATABASE_URL!,
@@ -19,4 +19,11 @@ export const config = {
     tester_technician_name: process.env.TESTER_TECHNICIAN_NAME!,
     tester_technician_email: process.env.TESTER_TECHNICIAN_EMAIL!,
     tester_technician_password: process.env.TESTER_TECHNICIAN_PASSWORD!,
+    redis_username: process.env.REDIS_USERNAME!,
+    redis_password: process.env.REDIS_PASSWORD!,
+    redis_host: process.env.REDIS_HOST!,
+    redis_port: process.env.REDIS_PORT!,
+    smtp_user: process.env.SMTP_USER!,
+    smtp_password: process.env.SMTP_PASSWORD!,
+    email_sender: process.env.EMAIL_SENDER!,
 };

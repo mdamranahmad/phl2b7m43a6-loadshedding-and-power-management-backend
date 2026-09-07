@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { Role } from "../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
-import { config } from "../config/index.js";
+import  config  from "../config/index.js";
 import { AppError } from "./AppError.js";
 import httpStatus from "http-status";
 
