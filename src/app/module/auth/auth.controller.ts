@@ -3,6 +3,7 @@ import { catchAsync } from "../../utils/catchAsync.js";
 import { AuthService } from "./auth.service.js";
 import { sendResponse } from "../../utils/sendResponse.js";
 import httpStatus from "http-status";
+import { AppError } from "../../utils/AppError.js";
 
 // ==================================================
 // Register User as Customer
@@ -51,7 +52,76 @@ const emailVerification = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Login Registered Customer
+// ==================================================
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+    const payload = req.body;
+
+    const { accessToken, refreshToken } = await AuthService.loginUser(payload);
+
+    res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "User Login Successful.",
+        data: { accessToken, refreshToken },
+    });
+});
+
+// ==================================================
+// Token Generation for Expired Access Token
+// ==================================================
+const refreshToken = catchAsync(async (req: Request, res: Response) => {
+    if (!req.cookies.refreshToken) {
+        throw new AppError(
+            httpStatus.UNAUTHORIZED,
+            "Refresh Token Is Missing!",
+        );
+    }
+
+    const { accessToken, refreshToken } = await AuthService.refreshToken(
+        req.cookies.refreshToken,
+    );
+
+    res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "New Access Token Generation Successful.",
+        data: { accessToken, refreshToken },
+    });
+});
+
 export const AuthController = {
     registerCustomer,
     emailVerification,
+    loginUser,
+    refreshToken,
 };

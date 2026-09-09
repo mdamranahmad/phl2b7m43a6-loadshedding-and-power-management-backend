@@ -24,7 +24,7 @@ const CustomerEmailVerifyZSchema = z.object({
     otp: z.string().length(6),
 });
 
-const LoginZSchema = z.object({
+const UserLoginZSchema = z.object({
     email: z.email(),
     password: z
         .string()
@@ -37,4 +37,5 @@ const LoginZSchema = z.object({
 export const CustomerValidation = {
     CustomerRegistrationZSchema,
     CustomerEmailVerifyZSchema,
+    UserLoginZSchema
 };

@@ -12,6 +12,11 @@ export interface ICustomerEmailVerifiyPayload {
     customerProfile: { meterNumber: string };
 }
 
+export interface IUserLoginPayload {
+    email: string;
+    password: string;
+}
+
 export interface ICustomerEmailVerificationPayload {
     email: string;
     otp: string;
