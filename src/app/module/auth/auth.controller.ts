@@ -20,6 +20,38 @@ const registerCustomer = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Email Verification for Registered Customer
+// ==================================================
+const emailVerification = catchAsync(async (req: Request, res: Response) => {
+    const payload = req.body;
+
+    const { user, customer, accessToken, refreshToken } =
+        await AuthService.emailVerification(payload);
+
+    res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.CREATED,
+        message: "Customer Registration Successful.",
+        data: { user, customer, accessToken, refreshToken },
+    });
+});
+
 export const AuthController = {
     registerCustomer,
+    emailVerification,
 };
