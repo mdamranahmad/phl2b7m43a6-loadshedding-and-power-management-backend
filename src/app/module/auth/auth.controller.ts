@@ -119,9 +119,31 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Get User Profile For Logged In User
+// ==================================================
+const getMe = catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) {
+        throw new AppError(
+            httpStatus.UNAUTHORIZED,
+            "User Information Missing In Request!",
+        );
+    }
+
+    const result = await AuthService.getMe(req.user);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "User Profile Feched Operation Successful.",
+        data: result,
+    });
+});
+
 export const AuthController = {
     registerCustomer,
     emailVerification,
     loginUser,
     refreshToken,
+    getMe,
 };

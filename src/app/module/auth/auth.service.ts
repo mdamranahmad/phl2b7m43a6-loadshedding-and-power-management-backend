@@ -17,6 +17,7 @@ import { transporter } from "../../../lib/nodemailer.js";
 import { Role, UserStatus } from "../../../generated/prisma/enums.js";
 import { jwtUtils } from "../../utils/jwt.js";
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
+import type { IRequestUser } from "../../middleware/checkAuth.js";
 
 // ==================================================
 // Register User as Customer
@@ -326,9 +327,44 @@ const refreshToken = async (token: string) => {
     };
 };
 
+// ==================================================
+// Get User Profile For Logged In User
+// ==================================================
+const getMe = async (user: IRequestUser) => {
+    const isUserExists = await prisma.user.findUnique({
+        where: { id: user.userId },
+        omit: { passwordHash: true },
+        include: {
+            customerProfile: true,
+            technicianProfile: true,
+            substationManager: true,
+            zoneManager: true,
+        },
+    });
+
+    if (!isUserExists) {
+        throw new AppError(httpStatus.NOT_FOUND, "User Not Found!");
+    }
+
+    if (!isUserExists.emailVerified) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Email Not Varified!");
+    }
+
+    if (isUserExists.isDeleted) {
+        throw new AppError(httpStatus.NOT_FOUND, "User Is Deleted!");
+    }
+
+    if (isUserExists.status === UserStatus.BLOCKED) {
+        throw new AppError(httpStatus.FORBIDDEN, "User Is Blocked!");
+    }
+
+    return isUserExists;
+};
+
 export const AuthService = {
     registerCustomer,
     emailVerification,
     loginUser,
     refreshToken,
+    getMe,
 };
