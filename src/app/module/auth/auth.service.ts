@@ -79,6 +79,9 @@ const registerCustomer = async (payload: ICustomerRegisterPayload) => {
     });
 };
 
+const emailVerification = async (payload: any) => {}
+
 export const AuthService = {
     registerCustomer,
+    emailVerification,
 };
