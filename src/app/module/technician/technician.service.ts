@@ -15,6 +15,7 @@ import type { IRequestUser } from "../../middleware/checkAuth.js";
 import type { IApplyTechnicianPayload } from "./technician.interface.js";
 import type { UploadApiResponse } from "cloudinary";
 import { cloudinary } from "../../lib/cloudinary.js";
+import type { ICustomerEmailVerificationPayload } from "../auth/auth.interface.js";
 
 // ==================================================
 // Register User as Technician
@@ -34,13 +35,12 @@ const registerTechnician = async (
     }
 
     // Upload Resume in Cloudinary
-    console.log(111111111111111);
     const resumeUploadResult = await new Promise<UploadApiResponse>(
         (resolve, reject) => {
             cloudinary.uploader
                 .upload_stream(
-                    // { resource_type: "auto" },
-                    { resource_type: "raw" },
+                    { resource_type: "auto" },
+                    // { resource_type: "raw" },
                     async (error, result) => {
                         if (error) {
                             console.error(
@@ -64,8 +64,6 @@ const registerTechnician = async (
         },
     );
 
-    console.log(2222222222);
-
     const hashedPassword = await bcryptjs.hash(
         payload.password,
         Number(config.bcrypt_salt_round),
@@ -78,6 +76,7 @@ const registerTechnician = async (
             email: email,
             passwordHash: hashedPassword,
             needPasswordChange: true,
+            role: payload.role,
             technicianProfile: {
                 create: {
                     name: payload.name,
@@ -129,4 +128,53 @@ const registerTechnician = async (
     return technicianApplication;
 };
 
-export const TechnicianService = { registerTechnician };
+// ==================================================
+// Email Verification for Registered User
+// ==================================================
+const emailVerification = async (
+    payload: ICustomerEmailVerificationPayload,
+) => {
+    const otp = payload.otp;
+
+    const email = payload.email.trim().toLocaleLowerCase();
+
+    const isUserExists = await prisma.user.findUnique({
+        where: { email, role: Role.TECHNICIAN },
+    });
+
+    if (!isUserExists) {
+        throw new AppError(
+            httpStatus.CONFLICT,
+            "Technician Application Not Found!",
+        );
+    }
+
+    if (isUserExists?.emailVerified) {
+        throw new AppError(httpStatus.CONFLICT, "Email Already Verified!");
+    }
+
+    const otpKey = `technician-application-otp: ${email}`;
+
+    const redisOtpValue = await redisClient.get(otpKey);
+
+    if (!redisOtpValue) {
+        throw new AppError(httpStatus.UNAUTHORIZED, "Invalid OTP!");
+    }
+
+    if (redisOtpValue !== otp) {
+        throw new AppError(httpStatus.UNAUTHORIZED, "OTP Does Not Match!");
+    }
+
+    await redisClient.del(otpKey);
+
+    const verifiedTechnician = await prisma.user.update({
+        where: { id: isUserExists.id },
+        data: { emailVerified: true },
+        omit: { passwordHash: true },
+        include: { technicianProfile: true },
+    });
+
+    return verifiedTechnician;
+};
+
+export const TechnicianService = { registerTechnician, emailVerification };

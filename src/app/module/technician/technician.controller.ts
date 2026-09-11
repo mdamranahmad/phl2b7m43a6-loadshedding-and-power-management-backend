@@ -37,6 +37,23 @@ const registerTechnician = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Email Verification for Registered Technician
+// ==================================================
+const emailVerification = catchAsync(async (req: Request, res: Response) => {
+    const payload = req.body;
+
+    const result = await TechnicianService.emailVerification(payload);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.CREATED,
+        message: "Technician Email Verification Successful.",
+        data: result,
+    });
+});
+
 export const TechnicianController = {
     registerTechnician,
+    emailVerification,
 };

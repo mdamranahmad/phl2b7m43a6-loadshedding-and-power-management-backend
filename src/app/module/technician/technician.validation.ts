@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Role } from "../../../generated/prisma/enums.js";
 
 export const ApplyAsTechnicianZSchema = z.object({
     name: z
@@ -17,11 +18,14 @@ export const ApplyAsTechnicianZSchema = z.object({
         .regex(/[A-Z]/, "Add at least one uppercase letter")
         .regex(/[a-z]/, "Add at least one lowercase letter")
         .regex(/[0-9]/, "Add at least one number"),
-
-    address: z.string({
-            message: "Name is required",
+    role: z.enum(Role, {
+        message: "Role is required and must be a valid role",
+    }),
+    address: z
+        .string({
+            message: "Address is required",
         })
-        .min(2, "Name must be at least 2 characters"),
+        .min(2, "Address must be at least 2 characters"),
 
     expertise: z
         .string({
