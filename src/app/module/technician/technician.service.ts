@@ -34,13 +34,19 @@ const registerTechnician = async (
     }
 
     // Upload Resume in Cloudinary
+    console.log(111111111111111);
     const resumeUploadResult = await new Promise<UploadApiResponse>(
         (resolve, reject) => {
             cloudinary.uploader
                 .upload_stream(
-                    { resource_type: "auto" },
+                    // { resource_type: "auto" },
+                    { resource_type: "raw" },
                     async (error, result) => {
                         if (error) {
+                            console.error(
+                                "Cloudinary Full Error Response: ",
+                                error,
+                            );
                             return reject(error);
                         }
 
@@ -57,6 +63,8 @@ const registerTechnician = async (
                 .end(resume.buffer);
         },
     );
+
+    console.log(2222222222);
 
     const hashedPassword = await bcryptjs.hash(
         payload.password,

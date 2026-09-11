@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const ApplyAsTechnicianZSchema = z.object({
+export const ApplyAsTechnicianZSchema = z.object({
     name: z
         .string({
             message: "Name is required",
@@ -11,7 +11,17 @@ const ApplyAsTechnicianZSchema = z.object({
         message: "Invalid email address",
     }),
 
-    address: z.string().optional(),
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters")
+        .regex(/[A-Z]/, "Add at least one uppercase letter")
+        .regex(/[a-z]/, "Add at least one lowercase letter")
+        .regex(/[0-9]/, "Add at least one number"),
+
+    address: z.string({
+            message: "Name is required",
+        })
+        .min(2, "Name must be at least 2 characters"),
 
     expertise: z
         .string({
@@ -20,15 +30,10 @@ const ApplyAsTechnicianZSchema = z.object({
         .min(1, "Expertise cannot be empty"),
 
     // Coerce string to number for FormData inputs
-    experienceYears: z.coerce
+    experienceYear: z.coerce
         .number({
             message: "Experience years must be a valid number",
         })
         .int("Experience must be an integer")
         .nonnegative("Experience cannot be negative"),
 });
-
-
-export const TechnicianValidation = {
-    ApplyAsTechnicianZSchema
-}
