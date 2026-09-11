@@ -6,7 +6,7 @@ import { AppError } from "../utils/AppError.js";
 import { jwtUtils } from "../utils/jwt.js";
 import config from "../config/index.js";
 import type { JwtPayload } from "jsonwebtoken";
-import { prisma } from "../../lib/prisma.js";
+import { prisma } from "../lib/prisma.js";
 
 export interface IRequestUser {
     userId: string;

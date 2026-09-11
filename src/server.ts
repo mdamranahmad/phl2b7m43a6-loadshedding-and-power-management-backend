@@ -5,8 +5,8 @@ import {
     seedTesterTechnician,
     seedZoneManager,
 } from "./app/utils/seed.js";
-import { prisma } from "./lib/prisma.js";
-import { redisClient } from "./lib/redis.js";
+import { prisma } from "./app/lib/prisma.js";
+import { redisClient } from "./app/lib/redis.js";
 
 const port = config.port;
 

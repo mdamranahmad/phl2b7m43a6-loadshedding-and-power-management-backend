@@ -1,4 +1,4 @@
-import { prisma } from "../../../lib/prisma.js";
+import { prisma } from "../../lib/prisma.js";
 import { AppError } from "../../utils/AppError.js";
 import type {
     ICustomerEmailVerificationPayload,
@@ -10,10 +10,10 @@ import httpStatus from "http-status";
 import bcryptjs from "bcryptjs";
 import config from "../../config/index.js";
 import crypto from "crypto";
-import { redisClient } from "../../../lib/redis.js";
+import { redisClient } from "../../lib/redis.js";
 import path from "path";
 import ejs from "ejs";
-import { transporter } from "../../../lib/nodemailer.js";
+import { transporter } from "../../lib/nodemailer.js";
 import { Role, UserStatus } from "../../../generated/prisma/enums.js";
 import { jwtUtils } from "../../utils/jwt.js";
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
