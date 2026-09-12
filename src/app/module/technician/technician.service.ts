@@ -361,9 +361,29 @@ const getAllTechnician = async (query: IQuery) => {
     };
 };
 
+// ==================================================
+// Get Technician Profile By Technician Id
+// ==================================================
+const getTechnicianProfile = async (technicianId: string) => {
+    const isTechnicianExists = await prisma.technicianProfile.findUnique({
+        where: { id: technicianId },
+        include: { user: { omit: { passwordHash: true } } },
+    });
+
+    if (!isTechnicianExists) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "Technician Profile Not Found!",
+        );
+    }
+
+    return isTechnicianExists;
+};
+
 export const TechnicianService = {
     registerTechnician,
     emailVerification,
     approveTechnician,
     getAllTechnician,
+    getTechnicianProfile,
 };

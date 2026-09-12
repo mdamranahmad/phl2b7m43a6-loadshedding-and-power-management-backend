@@ -32,4 +32,10 @@ router.get(
     TechnicianController.getAllTechnician,
 );
 
+router.get(
+    "/:technicianId",
+    auth(Role.ZONE_MANAGER, Role.SUBSTATION_MANAGER),
+    TechnicianController.getTechnicianProfile,
+);
+
 export const TechnicianRoute = router;

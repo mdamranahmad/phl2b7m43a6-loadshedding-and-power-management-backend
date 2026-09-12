@@ -85,9 +85,26 @@ const getAllTechnician = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Get Technician Profile By Technician Id
+// ==================================================
+const getTechnicianProfile = catchAsync(async (req: Request, res: Response) => {
+    const technicianId = req.params.technicianId as string;
+
+    const result = await TechnicianService.getTechnicianProfile(technicianId);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Technician Profile Fetch Operation Successful.",
+        data: result,
+    });
+});
+
 export const TechnicianController = {
     registerTechnician,
     emailVerification,
     approveTechnician,
     getAllTechnician,
+    getTechnicianProfile,
 };
