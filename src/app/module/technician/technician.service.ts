@@ -8,14 +8,23 @@ import { redisClient } from "../../lib/redis.js";
 import path from "path";
 import ejs from "ejs";
 import { transporter } from "../../lib/nodemailer.js";
-import { Role, UserStatus } from "../../../generated/prisma/enums.js";
+import {
+    Role,
+    TechnicianVerificationStatus,
+    UserStatus,
+} from "../../../generated/prisma/enums.js";
 import { jwtUtils } from "../../utils/jwt.js";
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
 import type { IRequestUser } from "../../middleware/checkAuth.js";
-import type { IApplyTechnicianPayload } from "./technician.interface.js";
+import type {
+    IApplyTechnicianPayload,
+    IApproveTechnicianPayload,
+} from "./technician.interface.js";
 import type { UploadApiResponse } from "cloudinary";
 import { cloudinary } from "../../lib/cloudinary.js";
 import type { ICustomerEmailVerificationPayload } from "../auth/auth.interface.js";
+import type { IQuery } from "../../lib/interfaces/index.js";
+import type { TechnicianProfileWhereInput } from "../../../generated/prisma/models.js";
 
 // ==================================================
 // Register User as Technician
@@ -177,4 +186,184 @@ const emailVerification = async (
     return verifiedTechnician;
 };
 
-export const TechnicianService = { registerTechnician, emailVerification };
+// ==================================================
+// Approval or Rejection of Technician Application
+// ==================================================
+const approveTechnician = async (
+    payload: IApproveTechnicianPayload,
+    reviewer: IRequestUser,
+) => {
+    const { technicianId, verificationStatus, rejectReason } = payload;
+
+    const isTechnicianExists = await prisma.technicianProfile.findUnique({
+        where: { id: technicianId },
+        include: { user: { omit: { passwordHash: true } } },
+    });
+
+    if (!isTechnicianExists) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "Technician Application Not Found!",
+        );
+    }
+
+    if (!isTechnicianExists?.user.emailVerified) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Email Not Verified!");
+    }
+
+    if (isTechnicianExists?.isDeleted) {
+        throw new AppError(httpStatus.NOT_FOUND, "Technician Profile Deleted!");
+    }
+
+    if (isTechnicianExists?.user.status !== UserStatus.ACTIVE) {
+        throw new AppError(httpStatus.CONFLICT, "User is not Active!");
+    }
+
+    if (
+        isTechnicianExists?.verificationStatus !==
+        TechnicianVerificationStatus.PENDING
+    ) {
+        throw new AppError(
+            httpStatus.BAD_REQUEST,
+            `Technician application has already been ${isTechnicianExists.verificationStatus.toLocaleLowerCase()}`,
+        );
+    }
+
+    if (
+        verificationStatus === TechnicianVerificationStatus.REJECTED &&
+        !rejectReason
+    ) {
+        throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Rejection reason required to reject a technician application.",
+        );
+    }
+
+    const updateTechnician = await prisma.technicianProfile.update({
+        where: { id: technicianId },
+        data: {
+            verificationStatus,
+            rejectionReason:
+                verificationStatus === TechnicianVerificationStatus.REJECTED
+                    ? rejectReason
+                    : null,
+            reviewedBy: reviewer.userId,
+            reviewedAt: new Date(),
+        },
+    });
+
+    const isApproved =
+        verificationStatus === TechnicianVerificationStatus.APPROVED;
+
+    const templatePath = path.join(
+        process.cwd(),
+        `src/app/templates/${isApproved ? "technician-application-approved.ejs" : "technician-application-rejected.ejs"}`,
+    );
+
+    const templateData = {
+        name: updateTechnician.name,
+        reason: updateTechnician.rejectionReason,
+    };
+
+    const htmlTemplate = await ejs.renderFile(templatePath, templateData);
+
+    await transporter.sendMail({
+        from: config.email_sender,
+        to: updateTechnician.email,
+        subject: `Your Technician Application Has Been ${isApproved ? "Approved" : "Rejected"}!`,
+        html: htmlTemplate,
+    });
+
+    return updateTechnician;
+};
+
+// ==================================================
+// Get All Technician
+// ==================================================
+const getAllTechnician = async (query: IQuery) => {
+    // Search, Sort, Filter, Pagination
+    const limit = query.limit ? Number(query.limit) : 10;
+    const page = query.page ? Number(query.page) : 1;
+    const skip = (page - 1) * limit;
+    const sortBy = query.sortBy ? query.sortBy : "createdAt";
+    const sortOrder = query.sortOrder ? query.sortOrder : "desc";
+
+    const andConditions: TechnicianProfileWhereInput[] = [];
+
+    // Searching
+    if (query.searchTerm) {
+        andConditions.push({
+            OR: [
+                { name: { contains: query.searchTerm, mode: "insensitive" } },
+                { email: { contains: query.searchTerm, mode: "insensitive" } },
+                {
+                    address: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    contactNumber: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    expertise: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+            ],
+        });
+    }
+
+    // Filtering
+    if (query.verificationStatus) {
+        andConditions.push({ verificationStatus: query.verificationStatus });
+    }
+
+    if (query.expertise) {
+        andConditions.push({ expertise: query.expertise });
+    }
+
+    if (query.reviewedBy) {
+        andConditions.push({ reviewedBy: query.reviewedBy });
+    }
+
+    if (query.isAvailable) {
+        andConditions.push({ isAvailable: query.isAvailable });
+    }
+
+    // Default Filter Conditions
+    andConditions.push({ isDeleted: false });
+
+    const allTechnicians = await prisma.technicianProfile.findMany({
+        where: { AND: andConditions },
+        take: limit,
+        skip,
+        orderBy: { [sortBy]: sortOrder },
+        include: { user: { omit: { passwordHash: true } } },
+    });
+
+    const totalTechnicianCount = await prisma.technicianProfile.count({
+        where: { AND: andConditions },
+    });
+
+    return {
+        data: allTechnicians,
+        meta: {
+            page,
+            limit,
+            total: totalTechnicianCount,
+            totalPages: Math.ceil(totalTechnicianCount / limit),
+        },
+    };
+};
+
+export const TechnicianService = {
+    registerTechnician,
+    emailVerification,
+    approveTechnician,
+    getAllTechnician,
+};

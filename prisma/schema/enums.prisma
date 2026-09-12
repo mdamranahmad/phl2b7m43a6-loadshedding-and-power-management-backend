@@ -16,3 +16,11 @@ enum TechnicianVerificationStatus {
     APPROVED
     REJECTED
 }
+
+enum TechnicianAvailabilityStatus {
+  OFF_DUTY
+  AVAILABLE
+  ASSIGNED
+  IN_PROGRESS
+  ON_HOLD
+}

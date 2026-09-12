@@ -53,7 +53,41 @@ const emailVerification = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Approval or Rejection of Technician Application
+// ==================================================
+const approveTechnician = catchAsync(async (req: Request, res: Response) => {
+    const payload = req.body;
+    const reviewer = req.user!;
+
+    const result = await TechnicianService.approveTechnician(payload, reviewer);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.CREATED,
+        message: "Technician Application Approved.",
+        data: result,
+    });
+});
+
+// ==================================================
+// Get All Technician
+// ==================================================
+const getAllTechnician = catchAsync(async (req: Request, res: Response) => {
+    const { data, meta } = await TechnicianService.getAllTechnician(req.query);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "All Technician Profile Fetch Successful.",
+        data: data,
+        meta: meta,
+    });
+});
+
 export const TechnicianController = {
     registerTechnician,
     emailVerification,
+    approveTechnician,
+    getAllTechnician,
 };

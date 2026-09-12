@@ -17,6 +17,7 @@ model TechnicianProfile {
     createdAt DateTime @default(now())
     updatedat DateTime @updatedAt
     // areaId
+    isAvailable TechnicianAvailabilityStatus @default(AVAILABLE)
     userId String @unique
     user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade )
 

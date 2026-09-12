@@ -20,4 +20,16 @@ router.post(
     TechnicianController.emailVerification,
 );
 
+router.post(
+    "/approve-technician",
+    auth(Role.ZONE_MANAGER, Role.SUBSTATION_MANAGER),
+    TechnicianController.approveTechnician,
+);
+
+router.get(
+    "/all-technicians",
+    auth(Role.ZONE_MANAGER, Role.SUBSTATION_MANAGER),
+    TechnicianController.getAllTechnician,
+);
+
 export const TechnicianRoute = router;
