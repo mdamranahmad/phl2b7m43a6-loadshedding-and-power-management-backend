@@ -4,7 +4,7 @@ model Payment {
   amount                Decimal
   currency              String        @default("BDT")
   paymentGateway        String        @default("bkash")
-  merchandInvoiceNumber String        @unique // Token Number, Meter Number, Token Seq Number
+  merchantInvoiceNumber String        @unique // Token Number, Meter Number, Token Seq Number
   bkashPaymentId        String?       @unique
   bkashTrxId            String?
   payerReference        String? // User Email | Meter Number 

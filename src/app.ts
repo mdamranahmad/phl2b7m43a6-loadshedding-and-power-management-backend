@@ -8,6 +8,7 @@ import httpStatus from "http-status";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler.js";
 import { notFound } from "./app/middleware/notfound.js";
 import { TechnicianRoute } from "./app/module/technician/technician.route.js";
+import { UserRoutes } from "./app/module/user/user.route.js";
 
 const app: Express = express();
 
@@ -31,6 +32,7 @@ app.use(cookieParser());
 // APIs
 app.use("/api/v1/auth", AuthRoute);
 app.use("/api/v1/technician", TechnicianRoute);
+app.use("/api/v1/user", UserRoutes);
 
 app.get("/", (req: Request, res: Response) => {
     sendResponse(res, {

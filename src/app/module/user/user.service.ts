@@ -29,17 +29,6 @@ const requestToken = async (
     const transactionResult = await prisma.$transaction(async (tx) => {
         const customer = await prisma.customerProfile.findUnique({
             where: { userId: user.userId },
-            include: {
-                tokens: {
-                    orderBy: { createdAt: "desc" },
-                    take: 1,
-                    select: {
-                        payment: true,
-                        tokenSeqNo: true,
-                        tokenStatus: true,
-                    },
-                },
-            },
         });
 
         if (!customer || customer.isDeleted) {
@@ -62,6 +51,13 @@ const requestToken = async (
                 "You have unpaid token. Please pay first.",
             );
         }
+
+        const getTokenSeqNo = await prisma.token.findMany({
+            where: { userId: customer.userId },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: { tokenSeqNo: true },
+        });
 
         const generateToken = (): string => {
             const randomArray = new Uint8Array(20);
@@ -93,8 +89,7 @@ const requestToken = async (
                 meterNo: customer.meterNumber,
                 rechargeAmount: payload.rechargeAmount,
                 tokenNo: rechargeTokenNo,
-                tokenSeqNo: (customer.tokens[0]?.tokenSeqNo ?? 0) + 1,
-                customerId: customer.id,
+                tokenSeqNo: (getTokenSeqNo[0]?.tokenSeqNo ?? 0) + 1,
                 userId: customer.userId,
             },
         });
@@ -137,7 +132,7 @@ const requestToken = async (
         await tx.payment.create({
             data: {
                 amount: bkashCreatePaymentResult.amount,
-                merchandInvoiceNumber:
+                merchantInvoiceNumber:
                     bkashCreatePaymentResult.merchantInvoiceNumber,
                 tokenId: rechargeToken.id,
                 bkashPaymentId: bkashCreatePaymentResult.paymentID,

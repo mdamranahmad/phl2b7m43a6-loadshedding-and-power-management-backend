@@ -84,10 +84,18 @@ export const getBkashIdToken = async () => {
             );
         }
 
+        console.log("response: ", response);
         const result = await response.json();
 
+        console.log("result: ", result);
+
+        // Store generated token in redis
+        await redisClient.set(idTokenKey, result.id_token, {
+            expiration: { type: "EX", value: 60 * 60 },
+        });
+
         // Store generated refresh token in redis
-        await redisClient.set(refreshTokenKey, result.refresh, {
+        await redisClient.set(refreshTokenKey, result.refresh_token, {
             expiration: {
                 type: "EX",
                 value: 60 * 60 * 24 * 28,
@@ -97,7 +105,6 @@ export const getBkashIdToken = async () => {
         bkashIdToken = result.id_token;
 
         return bkashIdToken;
-        
     } catch (error: any) {
         throw new AppError(httpStatus.BAD_GATEWAY, error.message);
     }
