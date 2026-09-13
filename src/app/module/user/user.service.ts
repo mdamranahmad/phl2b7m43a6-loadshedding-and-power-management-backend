@@ -40,7 +40,7 @@ const requestToken = async (
 
         const existingToken = await prisma.token.findFirst({
             where: {
-                userId: customer.userId,
+                CustomerId: customer.id,
                 payment: { status: PaymentStatus.UNPAID },
             },
         });
@@ -53,7 +53,7 @@ const requestToken = async (
         }
 
         const getTokenSeqNo = await prisma.token.findMany({
-            where: { userId: customer.userId },
+            where: { CustomerId: customer.id },
             orderBy: { createdAt: "desc" },
             take: 1,
             select: { tokenSeqNo: true },
@@ -90,7 +90,7 @@ const requestToken = async (
                 rechargeAmount: payload.rechargeAmount,
                 tokenNo: rechargeTokenNo,
                 tokenSeqNo: (getTokenSeqNo[0]?.tokenSeqNo ?? 0) + 1,
-                userId: customer.userId,
+                CustomerId: customer.id,
             },
         });
 
@@ -117,7 +117,7 @@ const requestToken = async (
                     aggrementID: rechargeToken.id,
                     mode: "0011",
                     payerReference: customer.email,
-                    callbackURL: `${config.bkash_base_callback_url}/token/recharge-token/payment/callback`,
+                    callbackURL: `${config.bkash_base_callback_url}/user/request-token/payment/callback`,
                     amount: payload.rechargeAmount,
                     currency: "BDT",
                     intent: "sale",
@@ -147,4 +147,152 @@ const requestToken = async (
     return transactionResult;
 };
 
-export const UserServices = { requestToken };
+// ==================================================
+// Bkash Callback Function for Request Token
+// ==================================================
+const requestTokenCallBack = async (query: Record<string, any>) => {
+    const transactionResult = await prisma.$transaction(
+        async (tx) => {
+            const paymentID = query.paymentID;
+            console.log("paymentID: ", paymentID);
+
+            if (!paymentID) {
+                throw new AppError(
+                    httpStatus.BAD_REQUEST,
+                    "Payment Id Not Available!",
+                );
+            }
+
+            const status = query.status;
+
+            if (!status) {
+                throw new AppError(
+                    httpStatus.BAD_REQUEST,
+                    "Payment Status Not Available!",
+                );
+            }
+
+            const bkashIdToken = await getBkashIdToken();
+
+            if (!bkashIdToken) {
+                throw new AppError(
+                    httpStatus.BAD_REQUEST,
+                    "Bkash Access Token Not Available!",
+                );
+            }
+
+            const executedPaymentResponse = await fetch(
+                `${config.bkash_base_url}/tokenized/checkout/execute`,
+                {
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json",
+                        Accept: "application/json",
+                        Authorization: bkashIdToken,
+                        "X-App-Key": config.bkash_app_key,
+                    },
+                    body: JSON.stringify({ paymentID }),
+                },
+            );
+
+            const executedPaymentResult = await executedPaymentResponse.json();
+
+            if (status === "success") {
+                const token = await prisma.token.findUnique({
+                    where: { id: executedPaymentResult.merchantInvoiceNumber },
+                    include: {
+                        payment: true,
+                        customer: true,
+                    },
+                });
+
+                if (!token) {
+                    throw new AppError(
+                        httpStatus.NOT_FOUND,
+                        "Requested Token Not Found!",
+                    );
+                }
+
+                await tx.payment.update({
+                    where: {
+                        tokenId: executedPaymentResult.merchantInvoiceNumber,
+                        bkashPaymentId: paymentID,
+                    },
+                    data: {
+                        bkashTrxId: executedPaymentResult.trxID,
+                        status: PaymentStatus.PAID,
+                        paidAt: executedPaymentResult.paymentExecuteTime,
+                        gatewayResponse: executedPaymentResult,
+                    },
+                });
+
+                const templatePath = path.join(
+                    process.cwd(),
+                    "src/app/templates/customer-request-token.ejs",
+                );
+
+                const templateData = {
+                    name: token.customer.name,
+                    prepaidToken: token.tokenNo,
+                    seqNo: token.tokenSeqNo,
+                    meterNo: token.meterNo,
+                    rechargeAmount: token.rechargeAmount,
+                };
+
+                const htmlTemplate = await ejs.renderFile(
+                    templatePath,
+                    templateData,
+                );
+
+                await transporter.sendMail({
+                    from: config.email_sender,
+                    to: token.customer.email,
+                    subject: "Token Request Successful!",
+                    html: htmlTemplate,
+                });
+                return {
+                    redirectUrl: `${config.frontend_url}/dashboard/my-tokens?status=success`,
+                };
+            } else if (status === "failure") {
+                await tx.payment.update({
+                    where: {
+                        bkashPaymentId: paymentID,
+                    },
+                    data: {
+                        status: PaymentStatus.FAILED,
+                        gatewayResponse: executedPaymentResult,
+                    },
+                });
+                return {
+                    redirectUrl: `${config.frontend_url}/dashboard/my-tokens?status=failure`,
+                };
+            } else if (status === "cancel") {
+                await tx.payment.update({
+                    where: {
+                        bkashPaymentId: paymentID,
+                    },
+                    data: {
+                        status: PaymentStatus.CANCELLED,
+                        gatewayResponse: executedPaymentResult,
+                    },
+                });
+                return {
+                    redirectUrl: `${config.frontend_url}/dashboard/my-tokens?status=cancel`,
+                };
+            } else {
+                return {
+                    executedPaymentResult,
+                    redirectUrl: `${config.frontend_url}/dashboard/my-tokens?error=payment-failed`,
+                };
+            }
+        },
+        {
+            maxWait: 5000, // Max time prisma waits to acquire a transaction lock (default 2000ms)
+            timeout: 15000, // Max transaction execution time in ms
+        },
+    );
+
+    return transactionResult;
+};
+
+export const UserServices = { requestToken, requestTokenCallBack };

@@ -16,8 +16,8 @@ model Token {
   updatedAt      DateTime        @updatedAt
   // customerId     String          @unique
   // customer       CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId         String
-  user           User            @relation(fields: [userId], references: [id])
+  CustomerId         String
+  customer           CustomerProfile            @relation(fields: [CustomerId], references: [id])
   payment        Payment?
 
   @@map("tokens")

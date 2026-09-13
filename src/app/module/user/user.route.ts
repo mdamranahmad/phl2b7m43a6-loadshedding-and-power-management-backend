@@ -10,4 +10,9 @@ const router = Router();
 
 router.post("/request-token", auth(Role.CUSTOMER), UserController.requestToken);
 
+router.get(
+    "/request-token/payment/callback",
+    UserController.requestTokenCallBack,
+);
+
 export const UserRoutes = router;

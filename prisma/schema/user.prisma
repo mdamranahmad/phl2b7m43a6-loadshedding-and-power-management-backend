@@ -14,7 +14,6 @@ model User {
   createdAt          DateTime    @default(now())
   updatedat          DateTime    @updatedAt
 
-  tokens            Token[]
   customerProfile   CustomerProfile?
   technicianProfile TechnicianProfile?
   zoneManager       ZoneManager?

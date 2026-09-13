@@ -23,4 +23,20 @@ const requestToken = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-export const UserController = { requestToken };
+// ==================================================
+// Bkash Callback Function for Request Token
+// ==================================================
+const requestTokenCallBack = catchAsync(async (req: Request, res: Response) => {
+    const { redirectUrl } = await UserServices.requestTokenCallBack(req.query);
+
+    res.redirect(redirectUrl);
+
+    // sendResponse(res, {
+    //     success: true,
+    //     statusCode: httpStatus.OK,
+    //     message: "Token Request Payment Process Initiation Successful.",
+    //     data: result,
+    // });
+});
+
+export const UserController = { requestToken, requestTokenCallBack };
