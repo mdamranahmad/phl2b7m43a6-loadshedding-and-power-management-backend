@@ -13,8 +13,6 @@ import {
     TechnicianVerificationStatus,
     UserStatus,
 } from "../../../generated/prisma/enums.js";
-import { jwtUtils } from "../../utils/jwt.js";
-import type { JwtPayload, SignOptions } from "jsonwebtoken";
 import type { IRequestUser } from "../../middleware/checkAuth.js";
 import type {
     IApplyTechnicianPayload,
@@ -23,7 +21,7 @@ import type {
 import type { UploadApiResponse } from "cloudinary";
 import { cloudinary } from "../../lib/cloudinary.js";
 import type { ICustomerEmailVerificationPayload } from "../auth/auth.interface.js";
-import type { IQuery } from "../../lib/interfaces/index.js";
+import type { IQuery } from "../../interfaces/index.js";
 import type { TechnicianProfileWhereInput } from "../../../generated/prisma/models.js";
 
 // ==================================================

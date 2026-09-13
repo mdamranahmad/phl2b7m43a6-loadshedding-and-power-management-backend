@@ -1,0 +1,21 @@
+model Payment {
+  id                    String        @id @default(uuid())
+  status                PaymentStatus @default(UNPAID)
+  amount                Decimal
+  currency              String        @default("BDT")
+  paymentGateway        String        @default("bkash")
+  merchandInvoiceNumber String        @unique // Token Number, Meter Number, Token Seq Number
+  bkashPaymentId        String?       @unique
+  bkashTrxId            String?
+  payerReference        String? // User Email | Meter Number 
+  paidAt                String?
+  gatewayResponse       Json? // The complete data from payment response in bkash
+  refundTrxId           String?
+  refundAmount          String?
+  refundReson           String?
+  refundAt              String?
+  tokenId               String        @unique
+  token                 Token         @relation(fields: [tokenId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+}

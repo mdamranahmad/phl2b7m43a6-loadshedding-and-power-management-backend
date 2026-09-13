@@ -1,20 +1,20 @@
 enum Role {
-    CUSTOMER
-    TECHNICIAN
-    SUBSTATION_MANAGER
-    ZONE_MANAGER
+  CUSTOMER
+  TECHNICIAN
+  SUBSTATION_MANAGER
+  ZONE_MANAGER
 }
 
 enum UserStatus {
-    ACTIVE
-    INACTIVE
-    BLOCKED
+  ACTIVE
+  INACTIVE
+  BLOCKED
 }
 
 enum TechnicianVerificationStatus {
-    PENDING
-    APPROVED
-    REJECTED
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum TechnicianAvailabilityStatus {
@@ -23,4 +23,24 @@ enum TechnicianAvailabilityStatus {
   ASSIGNED
   IN_PROGRESS
   ON_HOLD
+}
+
+enum MeterType {
+  ONLINE_PREPAID
+  ONLINE_POSTPAID
+  OFFLINE_PREPAID
+  OFFLINE_POSTPAID
+}
+
+enum TokenStatus {
+  USED
+  UNUSED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
 }
