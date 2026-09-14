@@ -15,7 +15,7 @@ model TechnicianProfile {
   isDeleted          Boolean                      @default(false)
   deletedAt          DateTime?
   createdAt          DateTime                     @default(now())
-  updatedat          DateTime                     @updatedAt
+  updatedAt          DateTime                     @updatedAt
   // areaId
   isAvailable        TechnicianAvailabilityStatus @default(AVAILABLE)
   userId             String                       @unique

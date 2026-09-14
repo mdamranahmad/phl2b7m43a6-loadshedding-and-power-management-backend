@@ -12,13 +12,12 @@ model User {
   emailVerified      Boolean?    @default(false)
   needPasswordChange Boolean     @default(true)
   createdAt          DateTime    @default(now())
-  updatedat          DateTime    @updatedAt
+  updatedAt          DateTime    @updatedAt
 
   customerProfile   CustomerProfile?
   technicianProfile TechnicianProfile?
   zoneManager       ZoneManager?
-  substationManager SubstationManager?
+  subStationManager SubStationManager?
 
-  @@index([id, email])
   @@map("users")
 }

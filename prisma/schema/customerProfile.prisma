@@ -8,8 +8,8 @@ model CustomerProfile {
   isDeleted     Boolean   @default(false)
   deletedAt     DateTime?
   createdAt     DateTime  @default(now())
-  updatedat     DateTime  @updatedAt
-  // areaId
+  updatedAt     DateTime  @updatedAt // Standardized camelCase
+
   userId        String    @unique
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   tokens        Token[]
