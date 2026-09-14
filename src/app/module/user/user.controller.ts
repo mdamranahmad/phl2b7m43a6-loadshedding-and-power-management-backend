@@ -39,4 +39,26 @@ const requestTokenCallBack = catchAsync(async (req: Request, res: Response) => {
     // });
 });
 
-export const UserController = { requestToken, requestTokenCallBack };
+// ==================================================
+// Recharge Token
+// ==================================================
+const rechargeToken = catchAsync(async (req: Request, res: Response) => {
+    const payload = req.body;
+
+    const user = req.user!;
+
+    const result = await UserServices.rechargeToken(payload, user);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Token Recharge Successful.",
+        data: result,
+    });
+});
+
+export const UserController = {
+    requestToken,
+    requestTokenCallBack,
+    rechargeToken,
+};

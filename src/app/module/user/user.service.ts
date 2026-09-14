@@ -10,12 +10,16 @@ import { transporter } from "../../lib/nodemailer.js";
 import {
     PaymentStatus,
     Role,
+    TokenStatus,
     UserStatus,
 } from "../../../generated/prisma/enums.js";
 import { jwtUtils } from "../../utils/jwt.js";
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
 import type { IRequestUser } from "../../middleware/checkAuth.js";
-import type { IRequestTokenPayload } from "./user.interface.js";
+import type {
+    IRechargeTokenPayload,
+    IRequestTokenPayload,
+} from "./user.interface.js";
 import crypto from "crypto";
 import { getBkashIdToken } from "../../lib/bkash.js";
 
@@ -154,7 +158,6 @@ const requestTokenCallBack = async (query: Record<string, any>) => {
     const transactionResult = await prisma.$transaction(
         async (tx) => {
             const paymentID = query.paymentID;
-            console.log("paymentID: ", paymentID);
 
             if (!paymentID) {
                 throw new AppError(
@@ -295,4 +298,43 @@ const requestTokenCallBack = async (query: Record<string, any>) => {
     return transactionResult;
 };
 
-export const UserServices = { requestToken, requestTokenCallBack };
+// ==================================================
+// Recharge Token
+// ==================================================
+const rechargeToken = async (
+    payload: IRechargeTokenPayload,
+    user: IRequestUser,
+) => {
+    const customer = await prisma.customerProfile.findUnique({
+        where: { userId: user.userId },
+    });
+
+    if (!customer || customer.isDeleted) {
+        throw new AppError(httpStatus.NOT_FOUND, "Customer Profile Not Foun!");
+    }
+
+    const isTokenExists = await prisma.token.findFirst({
+        where: {
+            tokenNo: payload.TokenNo,
+            meterNo: customer.meterNumber,
+            tokenStatus: TokenStatus.UNUSED,
+            payment: { status: PaymentStatus.PAID },
+        },
+    });
+
+    if (!isTokenExists) {
+        throw new AppError(httpStatus.NOT_FOUND, "Invalid Token Number!");
+    }
+
+    const usedToken = await prisma.token.update({
+        where: { id: isTokenExists.id },
+        data: { tokenStatus: TokenStatus.USED },
+    });
+
+    return usedToken;
+};
+export const UserServices = {
+    requestToken,
+    requestTokenCallBack,
+    rechargeToken,
+};
