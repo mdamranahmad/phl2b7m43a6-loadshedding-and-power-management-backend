@@ -1,26 +1,25 @@
 model Token {
-  id             String          @id @default(uuid())
+  id             String      @id @default(uuid())
   tokenNo        String
   tokenSeqNo     Int
   meterNo        String
-  meterType      MeterType       @default(OFFLINE_PREPAID)
+  meterType      MeterType   @default(OFFLINE_PREPAID)
   rechargeAmount Decimal
-  tokenStatus    TokenStatus     @default(UNUSED)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  
+  tokenStatus    TokenStatus @default(UNUSED)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
   // Reserved for Future Expansion:
   // vendingAmount Decimal?
   // meterRent     Decimal?
   // demandCharge  Decimal?
   // vat           Decimal?
   // rebate        Decimal?
-  
-  customerId     String
-  customer       CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  payment        Payment?
+
+  customerId String
+  customer   CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  payment    Payment?
 
   @@index([customerId])
   @@map("tokens")
 }
-

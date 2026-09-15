@@ -1,0 +1,467 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+area.prisma
+customerProfile.prisma
+enums.prisma
+feeder.prisma
+house.prisma
+payment.prisma
+schedule.prisma
+schema.prisma
+substation.prisma
+substationManager.prisma
+technicianProfile.prisma
+token.prisma
+user.prisma
+zone.prisma
+zoneManager.prisma
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="area.prisma">
+model Area {
+  id            String     @id @default(uuid())
+  name          String
+  // capacityKw String?
+  // allocatedKw String?
+  zoneId        String
+  zone          Zone       @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  substationId  String
+  substation    SubStation @relation(fields: [substationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  feederId      String
+  feeder        Feeder     @relation(fields: [feederId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  houses        House[]
+  schedules     Schedule[]
+  isPowerOut    Boolean    @default(false)
+  scheduleStart DateTime?
+  scheduleEnd   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([zoneId])
+  @@index([substationId])
+  @@index([feederId])
+  @@map("areas")
+}
+</file>
+
+<file path="customerProfile.prisma">
+model CustomerProfile {
+  id            String    @id @default(uuid())
+  name          String
+  email         String
+  address       String?
+  contactNumber String?
+  meterNumber   String
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt // Standardized camelCase
+
+  userId String  @unique
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tokens Token[]
+
+  @@index([email], name: "idx_customer_email")
+  @@index([isDeleted], name: "idx_customer_isDeleted")
+  @@map("customers")
+}
+</file>
+
+<file path="enums.prisma">
+enum Role {
+  CUSTOMER
+  TECHNICIAN
+  SUBSTATION_MANAGER
+  ZONE_MANAGER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum TechnicianVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TechnicianAvailabilityStatus {
+  OFF_DUTY
+  AVAILABLE
+  ASSIGNED
+  IN_PROGRESS
+  ON_HOLD
+}
+
+enum MeterType {
+  ONLINE_PREPAID
+  ONLINE_POSTPAID
+  OFFLINE_PREPAID
+  OFFLINE_POSTPAID
+}
+
+enum TokenStatus {
+  USED
+  UNUSED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum ScheduleStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  UPCOMING
+  ONGOING
+  COMPLETED
+}
+</file>
+
+<file path="feeder.prisma">
+model Feeder {
+  id           String     @id @default(uuid())
+  name         String
+  // capacityKw String?
+  // allocatedKw String?
+  zoneId       String
+  zone         Zone       @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  substationId String
+  substation   SubStation @relation(fields: [substationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  areas        Area[]
+  houses       House[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([zoneId])
+  @@index([substationId])
+  @@map("feeders")
+}
+</file>
+
+<file path="house.prisma">
+model House {
+  id            String     @id @default(uuid())
+  name          String
+  zoneId        String
+  zone          Zone       @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  substationId  String
+  substation    SubStation @relation(fields: [substationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  feederId      String
+  feeder        Feeder     @relation(fields: [feederId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  areaId        String
+  area          Area       @relation(fields: [areaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  isPowerOut    Boolean    @default(false)
+  isScheduled   Boolean    @default(false)
+  scheduleStart DateTime?
+  scheduleEnd   DateTime?
+
+  @@index([zoneId])
+  @@index([substationId])
+  @@index([feederId])
+  @@index([areaId])
+  @@map("houses")
+}
+</file>
+
+<file path="payment.prisma">
+model Payment {
+  id                    String        @id @default(uuid())
+  status                PaymentStatus @default(UNPAID)
+  amount                Decimal
+  currency              String        @default("BDT")
+  paymentGateway        String        @default("bkash")
+  merchantInvoiceNumber String        @unique
+  bkashPaymentId        String?       @unique
+  bkashTrxId            String?
+  payerReference        String?
+  paidAt                String?
+  gatewayResponse       Json?
+  refundTrxId           String?
+  refundAmount          String?
+  refundReason          String? // Fixed typo: refundReson -> refundReason
+  refundAt              String?
+
+  tokenId String @unique
+  token   Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
+}
+</file>
+
+<file path="schedule.prisma">
+model Schedule {
+  id           String            @id @default(uuid())
+  title        String?
+  status       ScheduleStatus    @default(DRAFT)
+  reason       String?
+  startTime    DateTime
+  endTime      DateTime
+  isDeleted    Boolean           @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  areaId       String
+  area         Area              @relation(fields: [areaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subStationId String
+  subStation   SubStation        @relation(fields: [subStationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdById  String
+  createdBy    SubStationManager @relation(fields: [createdById], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([areaId, startTime, endTime], name: "unique_schedule")
+  @@index([subStationId])
+  @@index([createdById])
+  @@map("shcedules")
+}
+</file>
+
+<file path="schema.prisma">
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+</file>
+
+<file path="substation.prisma">
+model SubStation {
+  id          String  @id @default(uuid())
+  name        String
+  capacityKw  Int?
+  allocatedKw Int?
+  //   zonalManagerId      String            
+  //   zonalManager        ZoneManager       @relation(fields: [zonalManagerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  subStationManagerId String?            @unique
+  subStationManager   SubStationManager? @relation(fields: [subStationManagerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  zoneId              String
+  zone                Zone               @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  feeders             Feeder[]
+  areas               Area[]
+  houses              House[]
+  shcedules           Schedule[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([zoneId])
+  //   @@index([zonalManagerId])
+  @@map("substations")
+}
+</file>
+
+<file path="substationManager.prisma">
+model SubStationManager {
+  id            String      @id @default(uuid())
+  name          String
+  email         String      @unique
+  address       String
+  contactNumber String?
+  employeeId    String
+  zoneId        String
+  zone          Zone        @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subStation    SubStation?
+  schedules     Schedule[]
+  isDeleted     Boolean     @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  // areaId
+  userId        String      @unique
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([zoneId])
+  @@index([email], name: "idx_substationManager_email")
+  @@map("substationManager")
+}
+</file>
+
+<file path="technicianProfile.prisma">
+model TechnicianProfile {
+  id                 String                       @id @default(uuid())
+  name               String
+  email              String                       @unique
+  address            String
+  contactNumber      String?
+  expertise          String
+  experienceYear     Int
+  verificationStatus TechnicianVerificationStatus @default(PENDING)
+  rejectionReason    String?
+  reviewedBy         String?
+  reviewedAt         DateTime?
+  resumeUrl          String?
+  resumePublicId     String?
+  isDeleted          Boolean                      @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime                     @default(now())
+  updatedAt          DateTime                     @updatedAt
+  // areaId
+  isAvailable        TechnicianAvailabilityStatus @default(AVAILABLE)
+  userId             String                       @unique
+  user               User                         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([email], name: "idx_technician_email")
+  @@index([isDeleted], name: "idx_technician_isDeleted")
+  @@map("technicianProfiles")
+}
+</file>
+
+<file path="token.prisma">
+model Token {
+  id             String      @id @default(uuid())
+  tokenNo        String
+  tokenSeqNo     Int
+  meterNo        String
+  meterType      MeterType   @default(OFFLINE_PREPAID)
+  rechargeAmount Decimal
+  tokenStatus    TokenStatus @default(UNUSED)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Reserved for Future Expansion:
+  // vendingAmount Decimal?
+  // meterRent     Decimal?
+  // demandCharge  Decimal?
+  // vat           Decimal?
+  // rebate        Decimal?
+
+  customerId String
+  customer   CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  payment    Payment?
+
+  @@index([customerId])
+  @@map("tokens")
+}
+</file>
+
+<file path="user.prisma">
+model User {
+  id                 String      @id @default(uuid())
+  name               String
+  email              String      @unique
+  passwordHash       String
+  role               Role?       @default(CUSTOMER)
+  status             UserStatus? @default(ACTIVE)
+  nid                String?     @unique
+  dob                String?
+  isDeleted          Boolean?    @default(false)
+  deletedAt          DateTime?
+  emailVerified      Boolean?    @default(false)
+  needPasswordChange Boolean     @default(true)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  customerProfile   CustomerProfile?
+  technicianProfile TechnicianProfile?
+  zoneManager       ZoneManager?
+  subStationManager SubStationManager?
+
+  @@map("users")
+}
+</file>
+
+<file path="zone.prisma">
+model Zone {
+  id                 String              @id @default(uuid())
+  name               String
+  zonalManagerId     String?             @unique
+  zonalManager       ZoneManager?        @relation(fields: [zonalManagerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subStations        SubStation[]
+  subStationManagers SubStationManager[]
+  feeders            Feeder[]
+  areas              Area[]
+  houses             House[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@map("zones")
+}
+</file>
+
+<file path="zoneManager.prisma">
+model ZoneManager {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  address       String
+  contactNumber String?
+  employeeId    String
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  // areaId
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  // zoneId        String
+  zone          Zone?
+  // substations   SubStation[]
+
+  @@index([email], name: "idx_zoneManager_email")
+  @@map("zoneManager")
+}
+</file>
+
+</files>

@@ -464,8 +464,8 @@ export const seedZoneData = async () => {
             { maxWait: 10000, timeout: 30000 },
         );
 
-        console.log("✅ Hierarchical seeding by name completed successfully.");
+        console.log("Hierarchical seeding by name completed successfully.");
     } catch (error) {
-        console.error("❌ Error seeding Zone Data:", error);
+        console.error("Error seeding Zone Data:", error);
     }
 };

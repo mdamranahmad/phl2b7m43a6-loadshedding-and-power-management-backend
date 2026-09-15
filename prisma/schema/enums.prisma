@@ -44,3 +44,12 @@ enum PaymentStatus {
   CANCELLED
   REFUNDED
 }
+
+enum ScheduleStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  UPCOMING
+  ONGOING
+  COMPLETED
+}

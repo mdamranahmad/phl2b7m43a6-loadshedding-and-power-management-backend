@@ -1,8 +1,8 @@
 model Zone {
   id                 String              @id @default(uuid())
   name               String
-  zonalManagerId     String?              @unique
-  zonalManager       ZoneManager?         @relation(fields: [zonalManagerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  zonalManagerId     String?             @unique
+  zonalManager       ZoneManager?        @relation(fields: [zonalManagerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   subStations        SubStation[]
   subStationManagers SubStationManager[]
   feeders            Feeder[]
@@ -10,5 +10,6 @@ model Zone {
   houses             House[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+
   @@map("zones")
 }

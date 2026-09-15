@@ -1,4 +1,4 @@
-import express, { type Express, type Request, type Response } from "express";
+import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
 import config from "./app/config/index.js";
 import cookieParser from "cookie-parser";
@@ -9,6 +9,8 @@ import { globalErrorHandler } from "./app/middleware/globalErrorHandler.js";
 import { notFound } from "./app/middleware/notfound.js";
 import { TechnicianRoute } from "./app/module/technician/technician.route.js";
 import { UserRoutes } from "./app/module/user/user.route.js";
+import { SubStationManagerRoute } from "./app/module/subStationManager/subStationManager.route.js";
+import { SubStationManagerServices } from "./app/module/subStationManager/subStationManager.service.js";
 
 const app: Express = express();
 
@@ -33,6 +35,7 @@ app.use(cookieParser());
 app.use("/api/v1/auth", AuthRoute);
 app.use("/api/v1/technician", TechnicianRoute);
 app.use("/api/v1/user", UserRoutes);
+app.use("/api/v1/subStationManager", SubStationManagerRoute);
 
 app.get("/", (req: Request, res: Response) => {
     sendResponse(res, {
@@ -42,6 +45,21 @@ app.get("/", (req: Request, res: Response) => {
         data: null,
     });
 });
+
+// test api
+// app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
+// 	try {
+// 		const grantIdTokenResult = await ;
+
+// 		res.status(httpStatus.OK).json({
+// 			success: true,
+// 			message: "WelCome! You Are Using Test Route.",
+// 			data: grantIdTokenResult,
+// 		});
+// 	} catch (error) {
+// 		console.log(error);
+// 		next(error);
+// 	})
 
 // Global Error Handler and Not Found
 app.use(globalErrorHandler);

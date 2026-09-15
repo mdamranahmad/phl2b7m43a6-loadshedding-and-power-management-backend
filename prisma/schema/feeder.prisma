@@ -1,6 +1,8 @@
 model Feeder {
   id           String     @id @default(uuid())
   name         String
+  // capacityKw String?
+  // allocatedKw String?
   zoneId       String
   zone         Zone       @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   substationId String

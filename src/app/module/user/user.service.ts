@@ -1,20 +1,11 @@
 import { prisma } from "../../lib/prisma.js";
 import { AppError } from "../../utils/AppError.js";
 import httpStatus from "http-status";
-import bcryptjs from "bcryptjs";
 import config from "../../config/index.js";
-import { redisClient } from "../../lib/redis.js";
 import path from "path";
 import ejs from "ejs";
 import { transporter } from "../../lib/nodemailer.js";
-import {
-    PaymentStatus,
-    Role,
-    TokenStatus,
-    UserStatus,
-} from "../../../generated/prisma/enums.js";
-import { jwtUtils } from "../../utils/jwt.js";
-import type { JwtPayload, SignOptions } from "jsonwebtoken";
+import { PaymentStatus, TokenStatus } from "../../../generated/prisma/enums.js";
 import type { IRequestUser } from "../../middleware/checkAuth.js";
 import type {
     IRechargeTokenPayload,
@@ -57,7 +48,7 @@ const requestToken = async (
         }
 
         const getTokenSeqNo = await prisma.token.findMany({
-            where: { CustomerId: customer.id },
+            where: { customerId: customer.id },
             orderBy: { createdAt: "desc" },
             take: 1,
             select: { tokenSeqNo: true },
@@ -94,7 +85,7 @@ const requestToken = async (
                 rechargeAmount: payload.rechargeAmount,
                 tokenNo: rechargeTokenNo,
                 tokenSeqNo: (getTokenSeqNo[0]?.tokenSeqNo ?? 0) + 1,
-                CustomerId: customer.id,
+                customerId: customer.id,
             },
         });
 

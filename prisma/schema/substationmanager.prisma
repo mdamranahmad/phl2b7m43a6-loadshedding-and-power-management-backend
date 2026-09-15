@@ -4,10 +4,11 @@ model SubStationManager {
   email         String      @unique
   address       String
   contactNumber String?
-  employeeId     String
+  employeeId    String
   zoneId        String
   zone          Zone        @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   subStation    SubStation?
+  schedules     Schedule[]
   isDeleted     Boolean     @default(false)
   deletedAt     DateTime?
   createdAt     DateTime    @default(now())
@@ -15,6 +16,7 @@ model SubStationManager {
   // areaId
   userId        String      @unique
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
   @@index([zoneId])
   @@index([email], name: "idx_substationManager_email")
   @@map("substationManager")
