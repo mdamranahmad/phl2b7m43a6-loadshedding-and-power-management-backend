@@ -20,4 +20,22 @@ router.post(
     SubStationManagerController.generateLoadSheddingSchedule,
 );
 
+router.get(
+    "/get-schedule-batches",
+    auth(Role.SUBSTATION_MANAGER),
+    SubStationManagerController.getScheduleBatches,
+);
+
+router.get(
+    "/get-schedule-batches/:scheduleBatchId",
+    auth(Role.SUBSTATION_MANAGER, Role.ZONE_MANAGER),
+    SubStationManagerController.getScheduleBatcheById,
+);
+
+router.post(
+    "/get-schedule-batches/:scheduleBatchId",
+    auth(Role.SUBSTATION_MANAGER),
+    SubStationManagerController.publishScheduleBatch,
+);
+
 export const SubStationManagerRoute = router;

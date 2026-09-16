@@ -5,7 +5,11 @@ import config from "../../config/index.js";
 import path from "path";
 import ejs from "ejs";
 import { transporter } from "../../lib/nodemailer.js";
-import { PaymentStatus, TokenStatus } from "../../../generated/prisma/enums.js";
+import {
+    PaymentStatus,
+    ScheduleStatus,
+    TokenStatus,
+} from "../../../generated/prisma/enums.js";
 import type { IRequestUser } from "../../middleware/checkAuth.js";
 import crypto from "crypto";
 import { getBkashIdToken } from "../../lib/bkash.js";
@@ -14,6 +18,8 @@ import type {
     IGenerateSchedulePayload,
 } from "./subStationManager.interface.js";
 import { isAfter } from "date-fns";
+import type { IQuery } from "../../interfaces/index.js";
+import type { ScheduleBatchWhereInput } from "../../../generated/prisma/models.js";
 
 // ==================================================
 // Allocate Kw to SubStation by SubStationManager
@@ -174,7 +180,292 @@ const generateLoadSheddingSchedule = async (
     });
 };
 
+// ==================================================
+// Get Schedule Batches for a  SubStation by SubStationManager
+// ==================================================
+const getScheduleBatches = async (query: IQuery, user: IRequestUser) => {
+    const manager = await prisma.subStationManager.findUnique({
+        where: { userId: user.userId },
+        select: {
+            id: true,
+            isDeleted: true,
+            subStation: { select: { id: true } },
+        },
+    });
+
+    if (!manager || manager.isDeleted) {
+        throw new AppError(httpStatus.NOT_FOUND, "Managet Profile Not Foun!");
+    }
+
+    if (!manager.subStation?.id) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "SubStation Not Found The Current User!",
+        );
+    }
+
+    const limit = query.limit ? Number(query.limit) : 10;
+    const page = query.page ? Number(query.page) : 1;
+    const skip = (page - 1) * limit;
+    const sortBy = query.sortBy ? query.sortBy : "createdAt";
+    const sortOrder = query.sortOrder ? query.sortOrder : "desc";
+
+    const andConditions: ScheduleBatchWhereInput[] = [];
+
+    // Searching
+    if (query.searchTerm) {
+        andConditions.push({
+            OR: [
+                { title: { contains: query.searchTerm, mode: "insensitive" } },
+                { reason: { contains: query.searchTerm, mode: "insensitive" } },
+                {
+                    subStationId: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    createdById: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+            ],
+        });
+    }
+
+    // Filtering
+    if (query.batchStartTime) {
+        andConditions.push({ batchStartTime: query.verificationStatus });
+    }
+
+    if (query.status) {
+        andConditions.push({ status: query.expertise });
+    }
+
+    // Default Filter Conditions
+    andConditions.push({ isDeleted: false });
+
+    const allScheduleBatches = await prisma.scheduleBatch.findMany({
+        where: { AND: andConditions },
+        take: limit,
+        skip,
+        orderBy: { [sortBy]: sortOrder },
+    });
+
+    const totalScheduleBatchesCount = await prisma.scheduleBatch.count({
+        where: { AND: andConditions },
+    });
+
+    return {
+        data: allScheduleBatches,
+        meta: {
+            page,
+            limit,
+            total: totalScheduleBatchesCount,
+            totalPages: Math.ceil(totalScheduleBatchesCount / limit),
+        },
+    };
+};
+
+// ==================================================
+// Get Schedule Batche By Id for admins
+// ==================================================
+const getScheduleBatcheById = async (
+    scheduleBatchId: string,
+    user: IRequestUser,
+) => {
+    const manager = await prisma.subStationManager.findUnique({
+        where: { userId: user.userId },
+        select: {
+            id: true,
+            isDeleted: true,
+            subStation: { select: { id: true } },
+        },
+    });
+
+    if (!manager || manager.isDeleted) {
+        throw new AppError(httpStatus.NOT_FOUND, "Managet Profile Not Foun!");
+    }
+
+    if (!manager.subStation?.id) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "SubStation Not Found The Current User!",
+        );
+    }
+
+    const scheduleBatch = await prisma.scheduleBatch.findUnique({
+        where: { id: scheduleBatchId },
+        include: {
+            subStation: { select: { id: true, name: true } },
+            schedules: true,
+        },
+    });
+
+    if (!scheduleBatch || scheduleBatch.isDeleted) {
+        throw new AppError(httpStatus.NOT_FOUND, "Schedule Batch Not Found!");
+    }
+
+    return scheduleBatch;
+};
+
+// ==================================================
+// Update Schedule Batche By for a  SubStation by SubStationManager
+// ==================================================
+// const updateScheduleBatch = async (
+//     scheduleBatchId: string,
+//     user: IRequestUser,
+// ) => {
+//     const manager = await prisma.subStationManager.findUnique({
+//         where: { userId: user.userId },
+//         select: {
+//             id: true,
+//             isDeleted: true,
+//             subStation: { select: { id: true } },
+//         },
+//     });
+
+//     if (!manager || manager.isDeleted) {
+//         throw new AppError(httpStatus.NOT_FOUND, "Managet Profile Not Foun!");
+//     }
+
+//     if (!manager.subStation?.id) {
+//         throw new AppError(
+//             httpStatus.NOT_FOUND,
+//             "SubStation Not Found The Current User!",
+//         );
+//     }
+
+//     const scheduleBatch = await prisma.scheduleBatch.findUnique({
+//         where: { id: scheduleBatchId },
+//         include: {
+//             subStation: { select: { id: true, name: true } },
+//             schedules: true,
+//         },
+//     });
+
+//     if (!scheduleBatch || scheduleBatch.isDeleted) {
+//         throw new AppError(httpStatus.NOT_FOUND, "Schedule Batch Not Found!");
+//     }
+
+//     return scheduleBatch;
+// };
+
+// ==================================================
+// Update Schedule By Schedule Id for a  SubStation by SubStationManager
+// ==================================================
+// const updateScheduleById = async (
+//     scheduleBatchId: string,
+//     user: IRequestUser,
+// ) => {
+//     const manager = await prisma.subStationManager.findUnique({
+//         where: { userId: user.userId },
+//         select: {
+//             id: true,
+//             isDeleted: true,
+//             subStation: { select: { id: true } },
+//         },
+//     });
+
+//     if (!manager || manager.isDeleted) {
+//         throw new AppError(httpStatus.NOT_FOUND, "Managet Profile Not Foun!");
+//     }
+
+//     if (!manager.subStation?.id) {
+//         throw new AppError(
+//             httpStatus.NOT_FOUND,
+//             "SubStation Not Found The Current User!",
+//         );
+//     }
+
+//     const scheduleBatch = await prisma.scheduleBatch.findUnique({
+//         where: { id: scheduleBatchId },
+//         include: {
+//             subStation: { select: { id: true, name: true } },
+//             schedules: true,
+//         },
+//     });
+
+//     if (!scheduleBatch || scheduleBatch.isDeleted) {
+//         throw new AppError(httpStatus.NOT_FOUND, "Schedule Batch Not Found!");
+//     }
+
+//     return scheduleBatch;
+// };
+
+// ==================================================
+// Publish Schedule Batch for a  SubStation by SubStationManager
+// ==================================================
+const publishScheduleBatch = async (
+    scheduleBatchId: string,
+    user: IRequestUser,
+) => {
+    const manager = await prisma.subStationManager.findUnique({
+        where: { userId: user.userId },
+        select: {
+            id: true,
+            isDeleted: true,
+            subStation: { select: { id: true } },
+        },
+    });
+
+    if (!manager || manager.isDeleted) {
+        throw new AppError(httpStatus.NOT_FOUND, "Managet Profile Not Found!");
+    }
+
+    if (!manager.subStation?.id) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "SubStation Not Found For The Current User!",
+        );
+    }
+
+    const scheduleBatch = await prisma.scheduleBatch.findFirst({
+        where: {
+            id: scheduleBatchId,
+            createdById: manager.id,
+            subStationId: manager.subStation.id,
+            isDeleted: false,
+        },
+        select: { id: true, status: true },
+    });
+
+    if (!scheduleBatch) {
+        throw new AppError(httpStatus.NOT_FOUND, "Schedule Batch Not Found!");
+    }
+
+    if (scheduleBatch.status !== ScheduleStatus.DRAFT) {
+        throw new AppError(
+            httpStatus.CONFLICT,
+            "Schedule Batch Is Not iN Draft State. Cannot Publish!",
+        );
+    }
+
+    return await prisma.$transaction(async (tx) => {
+        await tx.schedule.updateMany({
+            where: { scheduleBatchId: scheduleBatch.id },
+            data: { status: ScheduleStatus.PUBLISHED },
+        });
+
+        const updatedBatch = await tx.scheduleBatch.update({
+            where: { id: scheduleBatch.id },
+            data: {
+                status: ScheduleStatus.PUBLISHED,
+            },
+            include: {
+                subStation: { select: { id: true, name: true } },
+            },
+        });
+
+        return updatedBatch;
+    });
+};
+
 export const SubStationManagerServices = {
     allocateSubStationKw,
     generateLoadSheddingSchedule,
+    getScheduleBatches,
+    getScheduleBatcheById,
+    publishScheduleBatch,
 };

@@ -35,21 +35,88 @@ const generateLoadSheddingSchedule = catchAsync(
 
         const user = req.user!;
 
-        const result = await SubStationManagerServices.generateLoadSheddingSchedule(
-            payload,
-            user,
-        );
+        const result =
+            await SubStationManagerServices.generateLoadSheddingSchedule(
+                payload,
+                user,
+            );
 
         sendResponse(res, {
             success: true,
-            statusCode: httpStatus.OK,
+            statusCode: httpStatus.CREATED,
             message: "Schedule Generation Successful.",
             data: result,
         });
     },
 );
 
+// ==================================================
+// Get Schedule Batches for a  SubStation by SubStationManager
+// ==================================================
+const getScheduleBatches = catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+
+    const result = await SubStationManagerServices.getScheduleBatches(
+        req.query,
+        user,
+    );
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Fetch Schedule Batch Successful.",
+        data: result,
+    });
+});
+
+// ==================================================
+// Get Schedule Batche By Id for admins
+// ==================================================
+const getScheduleBatcheById = catchAsync(
+    async (req: Request, res: Response) => {
+        const scheduleBatchId = req.params.scheduleBatchId as string;
+
+        const user = req.user!;
+
+        const result = await SubStationManagerServices.getScheduleBatcheById(
+            scheduleBatchId,
+            user,
+        );
+
+        sendResponse(res, {
+            success: true,
+            statusCode: httpStatus.OK,
+            message: "Fetch Schedule Batch Successful.",
+            data: result,
+        });
+    },
+);
+
+// ==================================================
+// Publish Schedule Batch for a  SubStation by SubStationManager
+// ==================================================
+const publishScheduleBatch = catchAsync(async (req: Request, res: Response) => {
+    const scheduleBatchId = req.params.scheduleBatchId as string;
+
+    const user = req.user!;
+
+    const result = await SubStationManagerServices.publishScheduleBatch(
+        scheduleBatchId,
+        user,
+    );
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Schedule Batch Publiash Successful.",
+        data: result,
+    });
+});
+
 export const SubStationManagerController = {
     allocateSubStationKw,
     generateLoadSheddingSchedule,
+    getScheduleBatches,
+    getScheduleBatcheById,
+    publishScheduleBatch,
 };
