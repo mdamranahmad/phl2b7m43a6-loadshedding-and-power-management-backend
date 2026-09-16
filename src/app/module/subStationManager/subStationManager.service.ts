@@ -54,11 +54,11 @@ const generateLoadSheddingSchedule = async (
         allocatedKw,
         scheduleDuration,
         outageSlotDuration,
-        startTime,
-        endTime,
+        batchStartTime,
+        batchEndTime,
     } = payload;
 
-    if (isAfter(startTime, endTime)) {
+    if (isAfter(batchStartTime, batchEndTime)) {
         throw new AppError(
             httpStatus.CONFLICT,
             "Schedule must start before schedule end time!",
@@ -110,7 +110,7 @@ const generateLoadSheddingSchedule = async (
     const totalSlots = Math.ceil(scheduleDuration / outageSlotDuration); // Total slot for schedule for the given duration
 
     const scheduleSlots = [];
-    let currentSlotStartTime = new Date(startTime);
+    let currentSlotStartTime = new Date(batchStartTime);
 
     for (let i = 0; i < totalSlots; i++) {
         const currentSlotEndTime = new Date(
@@ -156,9 +156,21 @@ const generateLoadSheddingSchedule = async (
     }
 
     // // console.log(scheduleArray)
-    return await prisma.schedule.createMany({
-        data: schedulePayloads,
-        // skipDuplicates: true,
+    // return await prisma.schedule.createMany({
+    //     data: schedulePayloads,
+    //     // skipDuplicates: true,
+    // });
+
+    return await prisma.scheduleBatch.create({
+        data: {
+            batchStartTime,
+            batchEndTime,
+            scheduleDuration,
+            outageSlotDuration,
+            createdById: manager.id,
+            subStationId: manager.subStation.id,
+            schedules: { createMany: { data: schedulePayloads } },
+        },
     });
 };
 

@@ -8,6 +8,6 @@ export interface IGenerateSchedulePayload {
     allocatedKw: number;
     scheduleDuration: number;
     outageSlotDuration: number;
-    startTime: Date;
-    endTime: Date;
+    batchStartTime: Date;
+    batchEndTime: Date;
 }

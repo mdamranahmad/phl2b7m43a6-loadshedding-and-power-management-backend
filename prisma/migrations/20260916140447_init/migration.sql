@@ -19,6 +19,9 @@ CREATE TYPE "TokenStatus" AS ENUM ('USED', 'UNUSED');
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('UNPAID', 'PAID', 'FAILED', 'CANCELLED', 'REFUNDED');
 
+-- CreateEnum
+CREATE TYPE "ScheduleStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'CANCELLED', 'UPCOMING', 'ONGOING', 'COMPLETED');
+
 -- CreateTable
 CREATE TABLE "areas" (
     "id" TEXT NOT NULL,
@@ -26,6 +29,9 @@ CREATE TABLE "areas" (
     "zoneId" TEXT NOT NULL,
     "substationId" TEXT NOT NULL,
     "feederId" TEXT NOT NULL,
+    "isPowerOut" BOOLEAN NOT NULL DEFAULT false,
+    "scheduleStart" TIMESTAMP(3),
+    "scheduleEnd" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -73,6 +79,8 @@ CREATE TABLE "houses" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "isPowerOut" BOOLEAN NOT NULL DEFAULT false,
     "isScheduled" BOOLEAN NOT NULL DEFAULT false,
+    "scheduleStart" TIMESTAMP(3),
+    "scheduleEnd" TIMESTAMP(3),
 
     CONSTRAINT "houses_pkey" PRIMARY KEY ("id")
 );
@@ -102,9 +110,49 @@ CREATE TABLE "payments" (
 );
 
 -- CreateTable
+CREATE TABLE "schedules" (
+    "id" TEXT NOT NULL,
+    "status" "ScheduleStatus" NOT NULL DEFAULT 'DRAFT',
+    "startTime" TIMESTAMP(3) NOT NULL,
+    "endTime" TIMESTAMP(3) NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "areaId" TEXT NOT NULL,
+    "subStationId" TEXT NOT NULL,
+    "createdById" TEXT NOT NULL,
+    "scheduleBatchId" TEXT NOT NULL,
+
+    CONSTRAINT "schedules_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "schedule-batches" (
+    "id" TEXT NOT NULL,
+    "title" TEXT,
+    "status" "ScheduleStatus" NOT NULL DEFAULT 'DRAFT',
+    "reason" TEXT,
+    "scheduleDuration" INTEGER NOT NULL,
+    "outageSlotDuration" INTEGER NOT NULL,
+    "batchStartTime" TIMESTAMP(3) NOT NULL,
+    "batchEndTime" TIMESTAMP(3) NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "subStationId" TEXT NOT NULL,
+    "createdById" TEXT NOT NULL,
+
+    CONSTRAINT "schedule-batches_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "substations" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "capacityKw" INTEGER,
+    "allocatedKw" INTEGER,
     "subStationManagerId" TEXT,
     "zoneId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -266,6 +314,24 @@ CREATE UNIQUE INDEX "payments_bkashPaymentId_key" ON "payments"("bkashPaymentId"
 CREATE UNIQUE INDEX "payments_tokenId_key" ON "payments"("tokenId");
 
 -- CreateIndex
+CREATE INDEX "schedules_subStationId_idx" ON "schedules"("subStationId");
+
+-- CreateIndex
+CREATE INDEX "schedules_createdById_idx" ON "schedules"("createdById");
+
+-- CreateIndex
+CREATE INDEX "schedules_scheduleBatchId_idx" ON "schedules"("scheduleBatchId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "schedules_areaId_startTime_endTime_key" ON "schedules"("areaId", "startTime", "endTime");
+
+-- CreateIndex
+CREATE INDEX "schedule-batches_subStationId_idx" ON "schedule-batches"("subStationId");
+
+-- CreateIndex
+CREATE INDEX "schedule-batches_createdById_idx" ON "schedule-batches"("createdById");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "substations_subStationManagerId_key" ON "substations"("subStationManagerId");
 
 -- CreateIndex
@@ -348,6 +414,24 @@ ALTER TABLE "houses" ADD CONSTRAINT "houses_areaId_fkey" FOREIGN KEY ("areaId") 
 
 -- AddForeignKey
 ALTER TABLE "payments" ADD CONSTRAINT "payments_tokenId_fkey" FOREIGN KEY ("tokenId") REFERENCES "tokens"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "schedules" ADD CONSTRAINT "schedules_areaId_fkey" FOREIGN KEY ("areaId") REFERENCES "areas"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "schedules" ADD CONSTRAINT "schedules_subStationId_fkey" FOREIGN KEY ("subStationId") REFERENCES "substations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "schedules" ADD CONSTRAINT "schedules_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "substationManager"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "schedules" ADD CONSTRAINT "schedules_scheduleBatchId_fkey" FOREIGN KEY ("scheduleBatchId") REFERENCES "schedule-batches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "schedule-batches" ADD CONSTRAINT "schedule-batches_subStationId_fkey" FOREIGN KEY ("subStationId") REFERENCES "substations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "schedule-batches" ADD CONSTRAINT "schedule-batches_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "substationManager"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "substations" ADD CONSTRAINT "substations_subStationManagerId_fkey" FOREIGN KEY ("subStationManagerId") REFERENCES "substationManager"("id") ON DELETE CASCADE ON UPDATE CASCADE;

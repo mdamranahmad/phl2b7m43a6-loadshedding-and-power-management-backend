@@ -1,0 +1,23 @@
+model ScheduleBatch {
+  id                 String            @id @default(uuid())
+  title              String?
+  status             ScheduleStatus    @default(DRAFT)
+  reason             String?
+  scheduleDuration   Int
+  outageSlotDuration Int
+  batchStartTime     DateTime
+  batchEndTime       DateTime
+  isDeleted          Boolean           @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  subStationId       String
+  subStation         SubStation        @relation(fields: [subStationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdById        String
+  createdBy          SubStationManager @relation(fields: [createdById], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  schedules          Schedule[]
+
+  @@index([subStationId])
+  @@index([createdById])
+  @@map("schedule-batches")
+}
