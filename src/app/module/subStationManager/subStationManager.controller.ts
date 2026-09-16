@@ -113,10 +113,54 @@ const publishScheduleBatch = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Delete Schedule Batch for a  SubStation by SubStationManager
+// ==================================================
+const deleteScheduleBatch = catchAsync(async (req: Request, res: Response) => {
+    const scheduleBatchId = req.params.scheduleBatchId as string;
+
+    const user = req.user!;
+
+    const result = await SubStationManagerServices.deleteScheduleBatch(
+        scheduleBatchId,
+        user,
+    );
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Schedule Batch Delete Successful.",
+        data: result,
+    });
+});
+
+// ==================================================
+// Get All Schedule Batches (Zone Manager Only)
+// ==================================================
+const getAllScheduleBatches = catchAsync(
+    async (req: Request, res: Response) => {
+        const user = req.user!;
+
+        const result = await SubStationManagerServices.getAllScheduleBatches(
+            req.query,
+            user,
+        );
+
+        sendResponse(res, {
+            success: true,
+            statusCode: httpStatus.OK,
+            message: "Fetch Schedule Batches Successful.",
+            data: result,
+        });
+    },
+);
+
 export const SubStationManagerController = {
     allocateSubStationKw,
     generateLoadSheddingSchedule,
     getScheduleBatches,
     getScheduleBatcheById,
     publishScheduleBatch,
+    deleteScheduleBatch,
+    getAllScheduleBatches,
 };
