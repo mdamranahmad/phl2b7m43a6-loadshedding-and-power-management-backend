@@ -5,7 +5,11 @@ import config from "../../config/index.js";
 import path from "path";
 import ejs from "ejs";
 import { transporter } from "../../lib/nodemailer.js";
-import { PaymentStatus, TokenStatus } from "../../../generated/prisma/enums.js";
+import {
+    MeterType,
+    PaymentStatus,
+    TokenStatus,
+} from "../../../generated/prisma/enums.js";
 import type { IRequestUser } from "../../middleware/checkAuth.js";
 import type {
     IRechargeTokenPayload,
@@ -13,6 +17,11 @@ import type {
 } from "./user.interface.js";
 import crypto from "crypto";
 import { getBkashIdToken } from "../../lib/bkash.js";
+import type { IQuery } from "../../interfaces/index.js";
+import type {
+    CustomerProfileWhereInput,
+    TokenWhereInput,
+} from "../../../generated/prisma/models.js";
 
 // ==================================================
 // Request Recharge Token for Prepaid Meter
@@ -35,7 +44,7 @@ const requestToken = async (
 
         const existingToken = await prisma.token.findFirst({
             where: {
-                CustomerId: customer.id,
+                customerId: customer.id,
                 payment: { status: PaymentStatus.UNPAID },
             },
         });
@@ -324,8 +333,173 @@ const rechargeToken = async (
 
     return usedToken;
 };
+
+// ==================================================
+// Get Token History for Prepaid Meter
+// ==================================================
+const getMyTokens = async (query: IQuery, user: IRequestUser) => {
+    const customer = await prisma.customerProfile.findUnique({
+        where: { userId: user.userId, isDeleted: false },
+        select: {
+            id: true,
+        },
+    });
+
+    if (!customer) {
+        throw new AppError(httpStatus.NOT_FOUND, "Customer Profile Not Found!");
+    }
+
+    const limit = query.limit ? Number(query.limit) : 10;
+    const page = query.page ? Number(query.page) : 1;
+    const skip = (page - 1) * limit;
+    const sortBy = query.sortBy ? query.sortBy : "createdAt";
+    const sortOrder = query.sortOrder ? query.sortOrder : "desc";
+
+    const andConditions: TokenWhereInput[] = [];
+
+    // Searching
+    if (query.searchTerm) {
+        andConditions.push({
+            OR: [
+                {
+                    meterNo: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+            ],
+        });
+    }
+
+    // Filtering
+    if (query.meterType) {
+        andConditions.push({
+            meterType: query.meterType,
+        });
+    }
+
+    if (query.status) {
+        andConditions.push({ payment: { status: query.status } });
+    }
+
+    // Default Filter Conditions
+    andConditions.push({ customerId: customer.id });
+
+    const allTokens = await prisma.token.findMany({
+        where: { AND: andConditions },
+        take: limit,
+        skip,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+            payment: { select: { amount: true, status: true } },
+        },
+    });
+
+    const totalTokenCount = await prisma.token.count({
+        where: { AND: andConditions },
+    });
+
+    return {
+        data: allTokens,
+        meta: {
+            page,
+            limit,
+            total: totalTokenCount,
+            totalPages: Math.ceil(totalTokenCount / limit),
+        },
+    };
+};
+
+// ==================================================
+// Payment for Unpaid Token for Prepaid Meter
+// ==================================================
+const payUnPaidToken = async (tokenId: string, user: IRequestUser) => {
+    const transactionResult = await prisma.$transaction(async (tx) => {
+        const customer = await tx.customerProfile.findUnique({
+            where: { userId: user.userId, isDeleted: false },
+        });
+
+        if (!customer) {
+            throw new AppError(
+                httpStatus.NOT_FOUND,
+                "Customer Profile Not Foun!",
+            );
+        }
+
+        const isTokenExists = await tx.token.findFirst({
+            where: {
+                id: tokenId,
+                tokenStatus: TokenStatus.UNUSED,
+            },
+            include: { payment: { select: { status: true, amount: true } } },
+        });
+
+        if (!isTokenExists) {
+            throw new AppError(httpStatus.NOT_FOUND, "Token Not Found!");
+        }
+
+        if (isTokenExists.payment?.status === PaymentStatus.PAID) {
+            throw new AppError(httpStatus.BAD_REQUEST, "Token Already Paid!");
+        }
+
+        const bkasIdToken = await getBkashIdToken();
+
+        if (!bkasIdToken) {
+            throw new AppError(
+                httpStatus.BAD_GATEWAY,
+                "No Bkash Access TOken Available!",
+            );
+        }
+
+        const bkashCreatePaymentResponse = await fetch(
+            `${config.bkash_base_url}/tokenized/checkout/create`,
+            {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    Accept: "application/json",
+                    Authorization: bkasIdToken,
+                    "X-app-key": config.bkash_app_key,
+                },
+                body: JSON.stringify({
+                    aggrementID: isTokenExists.id,
+                    mode: "0011",
+                    payerReference: customer.email,
+                    callbackURL: `${config.bkash_base_callback_url}/user/request-token/payment/callback`,
+                    amount: isTokenExists.payment?.amount,
+                    currency: "BDT",
+                    intent: "sale",
+                    merchantInvoiceNumber: isTokenExists.id,
+                }),
+            },
+        );
+
+        const bkashCreatePaymentResult =
+            await bkashCreatePaymentResponse.json();
+
+        await tx.payment.update({
+            where: { tokenId: isTokenExists.id },
+            data: {
+                amount: bkashCreatePaymentResult.amount,
+                merchantInvoiceNumber:
+                    bkashCreatePaymentResult.merchantInvoiceNumber,
+                tokenId: isTokenExists.id,
+                bkashPaymentId: bkashCreatePaymentResult.paymentID,
+                payerReference: customer.email,
+                gatewayResponse: bkashCreatePaymentResult,
+            },
+        });
+
+        return { paymentUrl: bkashCreatePaymentResult.bkashURL };
+    });
+
+    return transactionResult;
+};
+
 export const UserServices = {
     requestToken,
     requestTokenCallBack,
     rechargeToken,
+    payUnPaidToken,
+    getMyTokens,
 };

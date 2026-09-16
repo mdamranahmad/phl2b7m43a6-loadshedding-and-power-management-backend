@@ -57,8 +57,45 @@ const rechargeToken = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Get Token History for Prepaid Meter
+// ==================================================
+const getMyTokens = catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+
+    const { data, meta } = await UserServices.getMyTokens(req.query, user);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Token History Retrival Successful.",
+        data: data,
+        meta: meta,
+    });
+});
+
+// ==================================================
+// Payment for Unpaid Token for Prepaid Meter
+// ==================================================
+const payUnPaidToken = catchAsync(async (req: Request, res: Response) => {
+    const tokenId = req.params.tokenId as string;
+
+    const user = req.user!;
+
+    const result = await UserServices.payUnPaidToken(tokenId, user);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Unpaid Token Payment Process Initiation Successful.",
+        data: result,
+    });
+});
+
 export const UserController = {
     requestToken,
     requestTokenCallBack,
     rechargeToken,
+    getMyTokens,
+    payUnPaidToken,
 };
