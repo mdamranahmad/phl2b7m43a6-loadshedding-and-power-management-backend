@@ -1,4 +1,9 @@
-import express, { type Express, type NextFunction, type Request, type Response } from "express";
+import express, {
+    type Express,
+    type NextFunction,
+    type Request,
+    type Response,
+} from "express";
 import cors from "cors";
 import config from "./app/config/index.js";
 import cookieParser from "cookie-parser";
@@ -11,6 +16,7 @@ import { TechnicianRoute } from "./app/module/technician/technician.route.js";
 import { UserRoutes } from "./app/module/user/user.route.js";
 import { SubStationManagerRoute } from "./app/module/subStationManager/subStationManager.route.js";
 import { SubStationManagerServices } from "./app/module/subStationManager/subStationManager.service.js";
+import { ZoneManagerRoutes } from "./app/module/zonalManager/zonalManager.route.js";
 
 const app: Express = express();
 
@@ -36,6 +42,7 @@ app.use("/api/v1/auth", AuthRoute);
 app.use("/api/v1/technician", TechnicianRoute);
 app.use("/api/v1/user", UserRoutes);
 app.use("/api/v1/subStationManager", SubStationManagerRoute);
+app.use("/api/v1/zonalManager", ZoneManagerRoutes);
 
 app.get("/", (req: Request, res: Response) => {
     sendResponse(res, {
