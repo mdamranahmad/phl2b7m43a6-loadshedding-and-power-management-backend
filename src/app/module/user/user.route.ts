@@ -29,4 +29,12 @@ router.post(
     UserController.payUnPaidToken,
 );
 
+router.get(
+    "/get-loadshedding-schedule",
+    auth(Role.CUSTOMER),
+    UserController.getLoadSheddingSchedule,
+);
+
+router.post("/report-outage", auth(Role.CUSTOMER), UserController.reportOutage);
+
 export const UserRoutes = router;

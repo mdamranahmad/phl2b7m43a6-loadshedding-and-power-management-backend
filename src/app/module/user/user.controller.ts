@@ -92,10 +92,52 @@ const payUnPaidToken = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Get Load Shedding Schedule for Customer
+// ==================================================
+const getLoadSheddingSchedule = catchAsync(
+    async (req: Request, res: Response) => {
+        const user = req.user!;
+
+        const { data, meta } = await UserServices.getLoadSheddingSchedule(
+            req.query,
+            user,
+        );
+
+        sendResponse(res, {
+            success: true,
+            statusCode: httpStatus.OK,
+            message: "Load Shedding Schedules Retrival Successful.",
+            data: data,
+            meta: meta,
+        });
+    },
+);
+
+// ==================================================
+// Report Unscheduled Power Outage
+// ==================================================
+const reportOutage = catchAsync(async (req: Request, res: Response) => {
+    const payload = req.body;
+
+    const user = req.user!;
+
+    const result = await UserServices.reportOutage(payload, user);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Power Outage Report Successful.",
+        data: result,
+    });
+});
+
 export const UserController = {
     requestToken,
     requestTokenCallBack,
     rechargeToken,
     getMyTokens,
     payUnPaidToken,
+    getLoadSheddingSchedule,
+    reportOutage,
 };

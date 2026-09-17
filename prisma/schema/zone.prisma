@@ -8,6 +8,7 @@ model Zone {
   feeders            Feeder[]
   areas              Area[]
   houses             House[]
+  outageReports      OutageReport[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 

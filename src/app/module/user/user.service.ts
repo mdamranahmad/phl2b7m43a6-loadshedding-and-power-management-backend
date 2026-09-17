@@ -7,12 +7,15 @@ import ejs from "ejs";
 import { transporter } from "../../lib/nodemailer.js";
 import {
     MeterType,
+    OutageSeverity,
     PaymentStatus,
+    ScheduleStatus,
     TokenStatus,
 } from "../../../generated/prisma/enums.js";
 import type { IRequestUser } from "../../middleware/checkAuth.js";
 import type {
     IRechargeTokenPayload,
+    IReportOutagePayload,
     IRequestTokenPayload,
 } from "./user.interface.js";
 import crypto from "crypto";
@@ -20,6 +23,7 @@ import { getBkashIdToken } from "../../lib/bkash.js";
 import type { IQuery } from "../../interfaces/index.js";
 import type {
     CustomerProfileWhereInput,
+    ScheduleWhereInput,
     TokenWhereInput,
 } from "../../../generated/prisma/models.js";
 
@@ -496,10 +500,160 @@ const payUnPaidToken = async (tokenId: string, user: IRequestUser) => {
     return transactionResult;
 };
 
+// ==================================================
+// Get Load Shedding Schedule for Customer
+// ==================================================
+const getLoadSheddingSchedule = async (query: IQuery, user: IRequestUser) => {
+    const customer = await prisma.customerProfile.findUnique({
+        where: { userId: user.userId, isDeleted: false },
+        select: {
+            id: true,
+        },
+    });
+
+    if (!customer) {
+        throw new AppError(httpStatus.NOT_FOUND, "Customer Profile Not Found!");
+    }
+
+    const limit = query.limit ? Number(query.limit) : 10;
+    const page = query.page ? Number(query.page) : 1;
+    const skip = (page - 1) * limit;
+    const sortBy = query.sortBy ? query.sortBy : "createdAt";
+    const sortOrder = query.sortOrder ? query.sortOrder : "desc";
+
+    const andConditions: ScheduleWhereInput[] = [];
+
+    // Searching
+    if (query.searchTerm) {
+        andConditions.push({
+            OR: [
+                {
+                    area: {
+                        name: {
+                            contains: query.searchTerm,
+                            mode: "insensitive",
+                        },
+                    },
+                },
+            ],
+        });
+    }
+
+    // Filtering
+
+    if (query.status) {
+        andConditions.push({
+            status: query.searchTerm?.toUpperCase() as ScheduleStatus,
+        });
+    }
+
+    // Default Filter Conditions
+    // andConditions.push({ areaId: customer. });
+
+    const allSchedules = await prisma.schedule.findMany({
+        where: { AND: andConditions },
+        take: limit,
+        skip,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+            area: { select: { id: true, name: true } },
+        },
+    });
+
+    const totalScheduleCount = await prisma.schedule.count({
+        where: { AND: andConditions },
+    });
+
+    return {
+        data: allSchedules,
+        meta: {
+            page,
+            limit,
+            total: totalScheduleCount,
+            totalPages: Math.ceil(totalScheduleCount / limit),
+        },
+    };
+};
+
+// ==================================================
+// Report Unscheduled Power Outage
+// ==================================================
+const reportOutage = async (
+    payload: IReportOutagePayload,
+    user: IRequestUser,
+) => {
+    const customer = await prisma.customerProfile.findUnique({
+        where: { userId: user.userId, isDeleted: false },
+        include: {
+            houses: {
+                select: {
+                    areaId: true,
+                    substationId: true,
+                    zoneId: true,
+                },
+                take: 1, // Fetch only the primary house profile
+            },
+        },
+    });
+
+    if (!customer) {
+        throw new AppError(httpStatus.NOT_FOUND, "Customer Profile Not Found!");
+    }
+
+    const primaryHouse = customer.houses[0];
+
+    if (
+        !primaryHouse ||
+        !primaryHouse.areaId ||
+        !primaryHouse.substationId ||
+        !primaryHouse.zoneId
+    ) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "No active house or grid location linked to this customer account!",
+        );
+    }
+
+    const {
+        OutageSeverity,
+        issueTitle,
+        description,
+        address,
+        outageStartTime,
+        isOngoing,
+    } = payload;
+
+    if (!issueTitle || !address || !outageStartTime) {
+        throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Missing required fields: issueTitle, address, or outageStartTime!",
+        );
+    }
+
+    const report = await prisma.outageReport.create({
+        data: {
+            title: issueTitle,
+            description: description!,
+            address: address,
+            severity: OutageSeverity as OutageSeverity,
+            outageStartTime: outageStartTime as string,
+            isOngoing: isOngoing as boolean,
+            reporterId: customer.id,
+            areaId: primaryHouse.areaId,
+            subStationId: primaryHouse.substationId,
+            zoneId: primaryHouse.zoneId,
+        },
+    });
+
+    return report;
+};
+
 export const UserServices = {
     requestToken,
     requestTokenCallBack,
     rechargeToken,
     payUnPaidToken,
     getMyTokens,
+    getLoadSheddingSchedule,
+    reportOutage,
 };

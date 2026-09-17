@@ -53,3 +53,19 @@ enum ScheduleStatus {
   ONGOING
   COMPLETED
 }
+
+enum OutageReportStatus {
+  PENDING
+  APPROVED
+  ASSIGNED
+  RESOLVED
+  REOPENED
+}
+
+enum OutageSeverity {
+  TOTAL_BLACKOUT
+  PARTIAL_POWER // e.g., low voltage, single phase down
+  DIM_LIGHTS
+  NEIGHBORHOOD_WIDE
+  OTHERS
+}

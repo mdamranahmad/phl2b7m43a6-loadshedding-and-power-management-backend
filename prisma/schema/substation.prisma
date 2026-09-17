@@ -15,6 +15,7 @@ model SubStation {
   houses              House[]
   shcedules           Schedule[]
   scheduleBatch       ScheduleBatch[]
+  outageReports       OutageReport[]
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
