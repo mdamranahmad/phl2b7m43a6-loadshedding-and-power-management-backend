@@ -337,7 +337,7 @@ const getMe = async (user: IRequestUser) => {
         include: {
             customerProfile: true,
             technicianProfile: true,
-            substationManager: true,
+            subStationManager: true,
             zoneManager: true,
         },
     });

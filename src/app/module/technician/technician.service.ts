@@ -9,7 +9,9 @@ import path from "path";
 import ejs from "ejs";
 import { transporter } from "../../lib/nodemailer.js";
 import {
+    OutageReportStatus,
     Role,
+    TechnicianAvailabilityStatus,
     TechnicianVerificationStatus,
     UserStatus,
 } from "../../../generated/prisma/enums.js";
@@ -17,12 +19,16 @@ import type { IRequestUser } from "../../middleware/checkAuth.js";
 import type {
     IApplyTechnicianPayload,
     IApproveTechnicianPayload,
+    IResolveAssignmentPayload,
 } from "./technician.interface.js";
 import type { UploadApiResponse } from "cloudinary";
 import { cloudinary } from "../../lib/cloudinary.js";
 import type { ICustomerEmailVerificationPayload } from "../auth/auth.interface.js";
 import type { IQuery } from "../../interfaces/index.js";
-import type { TechnicianProfileWhereInput } from "../../../generated/prisma/models.js";
+import type {
+    OutageReportWhereInput,
+    TechnicianProfileWhereInput,
+} from "../../../generated/prisma/models.js";
 
 // ==================================================
 // Register User as Technician
@@ -278,7 +284,21 @@ const approveTechnician = async (
 // ==================================================
 // Get All Technician
 // ==================================================
-const getPendingTechnicianApplications = async (query: IQuery) => {
+const getPendingTechnicianApplications = async (
+    query: IQuery,
+    user: IRequestUser,
+) => {
+    const manager = await prisma.subStationManager.findUnique({
+        where: { userId: user.userId, isDeleted: false },
+        select: {
+            id: true,
+            subStation: { select: { id: true } },
+        },
+    });
+
+    if (!manager || !manager.subStation?.id) {
+        throw new AppError(httpStatus.NOT_FOUND, "Manager Profile Not Found!");
+    }
     // Search, Sort, Filter, Pagination
     const limit = query.limit ? Number(query.limit) : 10;
     const page = query.page ? Number(query.page) : 1;
@@ -286,9 +306,12 @@ const getPendingTechnicianApplications = async (query: IQuery) => {
     const sortBy = query.sortBy ? query.sortBy : "createdAt";
     const sortOrder = query.sortOrder ? query.sortOrder : "desc";
 
-    const andConditions: TechnicianProfileWhereInput[] = [{isDeleted: false,
-        verificationStatus: TechnicianVerificationStatus.PENDING,
-    }];
+    const andConditions: TechnicianProfileWhereInput[] = [
+        {
+            isDeleted: false,
+            verificationStatus: TechnicianVerificationStatus.PENDING,
+        },
+    ];
 
     // Searching
     if (query.searchTerm) {
@@ -319,10 +342,6 @@ const getPendingTechnicianApplications = async (query: IQuery) => {
     }
 
     // Filtering
-    if (query.verificationStatus) {
-        andConditions.push({ verificationStatus: query.verificationStatus });
-    }
-
     if (query.expertise) {
         andConditions.push({ expertise: query.expertise });
     }
@@ -380,10 +399,211 @@ const getTechnicianProfile = async (technicianId: string) => {
     return isTechnicianExists;
 };
 
+// ==================================================
+// Get Assignments for a Technician
+// ==================================================
+const getAssignments = async (query: IQuery, user: IRequestUser) => {
+    const technician = await prisma.technicianProfile.findUnique({
+        where: {
+            userId: user.userId,
+            isDeleted: false,
+            verificationStatus: TechnicianVerificationStatus.APPROVED,
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    if (!technician) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "Technician Profile Not Found!",
+        );
+    }
+    // Search, Sort, Filter, Pagination
+    const limit = query.limit ? Number(query.limit) : 10;
+    const page = query.page ? Number(query.page) : 1;
+    const skip = (page - 1) * limit;
+    const sortBy = query.sortBy ? query.sortBy : "createdAt";
+    const sortOrder = query.sortOrder ? query.sortOrder : "desc";
+
+    const andConditions: OutageReportWhereInput[] = [
+        {
+            technicianId: technician.id,
+        },
+    ];
+
+    // Searching
+    if (query.searchTerm) {
+        andConditions.push({
+            OR: [
+                {
+                    address: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    area: {
+                        name: {
+                            contains: query.searchTerm,
+                            mode: "insensitive",
+                        },
+                    },
+                },
+                {
+                    description: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    ticketNo: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    title: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+            ],
+        });
+    }
+
+    // Filtering
+    if (query.isAssigned) {
+        andConditions.push({ isAssigned: query.isAssigned });
+    }
+
+    if (query.isOngoing) {
+        andConditions.push({ isOngoing: query.isOngoing });
+    }
+
+    if (query.reportStatus) {
+        andConditions.push({ reportStatus: query.reportStatus });
+    }
+
+    // Default Filter Conditions
+    // andConditions.push({ isDeleted: false });
+
+    const allAssignments = await prisma.outageReport.findMany({
+        where: { AND: andConditions },
+        take: limit,
+        skip,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+            reporter: { select: { id: true, name: true } },
+            technician: { select: { id: true, name: true, isAvailable: true } },
+            area: { select: { id: true, name: true } },
+            subStation: { select: { id: true, name: true } },
+        },
+    });
+
+    const totalAssignmentCount = await prisma.outageReport.count({
+        where: { AND: andConditions },
+    });
+
+    return {
+        data: allAssignments,
+        meta: {
+            page,
+            limit,
+            total: totalAssignmentCount,
+            totalPages: Math.ceil(totalAssignmentCount / limit),
+        },
+    };
+};
+
+// ==================================================
+// Update Assignments for a Technician
+// ==================================================
+const resolveAssignment = async (
+    outageReportId: string,
+    user: IRequestUser,
+) => {
+    const technician = await prisma.technicianProfile.findUnique({
+        where: {
+            userId: user.userId,
+            isDeleted: false,
+            verificationStatus: TechnicianVerificationStatus.APPROVED,
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    if (!technician) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "Technician Profile Not Found!",
+        );
+    }
+
+    if (!outageReportId) {
+        throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Outage Report Id required!",
+        );
+    }
+
+    return await prisma.$transaction(async (tx) => {
+        const isReportExists = await prisma.outageReport.findFirst({
+            where: {
+                id: outageReportId,
+                isAssigned: true,
+                isOngoing: true,
+                technicianId: technician.id,
+                reportStatus: { not: OutageReportStatus.RESOLVED },
+            },
+        });
+
+        if (!isReportExists) {
+            throw new AppError(
+                httpStatus.NOT_FOUND,
+                "Outage Report Not Found!",
+            );
+        }
+
+        if (isReportExists.reportStatus !== OutageReportStatus.ASSIGNED) {
+            throw new AppError(
+                httpStatus.BAD_REQUEST,
+                "Outage Report Is Not Assigned. Cannot Resolve!",
+            );
+        }
+
+        await tx.technicianProfile.update({
+            where: { id: technician.id },
+            data: { isAvailable: TechnicianAvailabilityStatus.AVAILABLE },
+        });
+
+        return await tx.outageReport.update({
+            where: { id: outageReportId },
+            data: {
+                isAssigned: false,
+                isOngoing: false,
+                reportStatus: OutageReportStatus.RESOLVED,
+            },
+            include: {
+                reporter: { select: { id: true, name: true } },
+                technician: {
+                    select: { id: true, name: true, isAvailable: true },
+                },
+                area: { select: { id: true, name: true } },
+                subStation: { select: { id: true, name: true } },
+            },
+        });
+    });
+};
+
 export const TechnicianService = {
     registerTechnician,
     emailVerification,
     approveTechnician,
     getPendingTechnicianApplications,
     getTechnicianProfile,
+    getAssignments,
+    resolveAssignment,
 };

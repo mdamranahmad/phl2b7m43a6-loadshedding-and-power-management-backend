@@ -73,17 +73,24 @@ const approveTechnician = catchAsync(async (req: Request, res: Response) => {
 // ==================================================
 // Get All Technician
 // ==================================================
-const getPendingTechnicianApplications = catchAsync(async (req: Request, res: Response) => {
-    const { data, meta } = await TechnicianService.getPendingTechnicianApplications(req.query);
+const getPendingTechnicianApplications = catchAsync(
+    async (req: Request, res: Response) => {
+        const user = req.user!;
+        const { data, meta } =
+            await TechnicianService.getPendingTechnicianApplications(
+                req.query,
+                user,
+            );
 
-    sendResponse(res, {
-        success: true,
-        statusCode: httpStatus.OK,
-        message: "All Technician Profile Fetch Successful.",
-        data: data,
-        meta: meta,
-    });
-});
+        sendResponse(res, {
+            success: true,
+            statusCode: httpStatus.OK,
+            message: "All Technician Profile Fetch Successful.",
+            data: data,
+            meta: meta,
+        });
+    },
+);
 
 // ==================================================
 // Get Technician Profile By Technician Id
@@ -101,10 +108,50 @@ const getTechnicianProfile = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+// ==================================================
+// Get All Assignments
+// ==================================================
+const getAssignments = catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const { data, meta } = await TechnicianService.getAssignments(
+        req.query,
+        user,
+    );
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "All Assignments Fetch Successful.",
+        data: data,
+        meta: meta,
+    });
+});
+
+// ==================================================
+// Resolve Assignments
+// ==================================================
+const resolveAssignment = catchAsync(async (req: Request, res: Response) => {
+    const outageReportId = req.params.outageReportId as string;
+    const user = req.user!;
+    const result = await TechnicianService.resolveAssignment(
+        outageReportId,
+        user,
+    );
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Assignment Resolve Operation Successful.",
+        data: result,
+    });
+});
+
 export const TechnicianController = {
     registerTechnician,
     emailVerification,
     approveTechnician,
     getPendingTechnicianApplications,
     getTechnicianProfile,
+    getAssignments,
+    resolveAssignment,
 };

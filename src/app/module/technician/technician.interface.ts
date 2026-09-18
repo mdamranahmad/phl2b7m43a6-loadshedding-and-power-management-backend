@@ -1,4 +1,7 @@
-import type { Role, TechnicianVerificationStatus } from "../../../generated/prisma/enums.js";
+import type {
+    Role,
+    TechnicianVerificationStatus,
+} from "../../../generated/prisma/enums.js";
 
 export interface IApplyTechnicianPayload {
     name: string;
@@ -14,4 +17,8 @@ export interface IApproveTechnicianPayload {
     technicianId: string;
     verificationStatus: TechnicianVerificationStatus;
     rejectReason: string;
+}
+
+export interface IResolveAssignmentPayload {
+    outageReportId: string;
 }
