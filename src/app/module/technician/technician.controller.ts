@@ -73,8 +73,8 @@ const approveTechnician = catchAsync(async (req: Request, res: Response) => {
 // ==================================================
 // Get All Technician
 // ==================================================
-const getAllTechnician = catchAsync(async (req: Request, res: Response) => {
-    const { data, meta } = await TechnicianService.getAllTechnician(req.query);
+const getPendingTechnicianApplications = catchAsync(async (req: Request, res: Response) => {
+    const { data, meta } = await TechnicianService.getPendingTechnicianApplications(req.query);
 
     sendResponse(res, {
         success: true,
@@ -105,6 +105,6 @@ export const TechnicianController = {
     registerTechnician,
     emailVerification,
     approveTechnician,
-    getAllTechnician,
+    getPendingTechnicianApplications,
     getTechnicianProfile,
 };

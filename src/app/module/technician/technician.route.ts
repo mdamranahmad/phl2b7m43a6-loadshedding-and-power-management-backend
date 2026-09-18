@@ -27,9 +27,9 @@ router.post(
 );
 
 router.get(
-    "/all-technicians",
+    "/get-pending-tech-application",
     auth(Role.ZONE_MANAGER, Role.SUBSTATION_MANAGER),
-    TechnicianController.getAllTechnician,
+    TechnicianController.getPendingTechnicianApplications,
 );
 
 router.get(

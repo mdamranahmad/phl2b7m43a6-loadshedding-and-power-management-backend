@@ -278,7 +278,7 @@ const approveTechnician = async (
 // ==================================================
 // Get All Technician
 // ==================================================
-const getAllTechnician = async (query: IQuery) => {
+const getPendingTechnicianApplications = async (query: IQuery) => {
     // Search, Sort, Filter, Pagination
     const limit = query.limit ? Number(query.limit) : 10;
     const page = query.page ? Number(query.page) : 1;
@@ -286,7 +286,9 @@ const getAllTechnician = async (query: IQuery) => {
     const sortBy = query.sortBy ? query.sortBy : "createdAt";
     const sortOrder = query.sortOrder ? query.sortOrder : "desc";
 
-    const andConditions: TechnicianProfileWhereInput[] = [];
+    const andConditions: TechnicianProfileWhereInput[] = [{isDeleted: false,
+        verificationStatus: TechnicianVerificationStatus.PENDING,
+    }];
 
     // Searching
     if (query.searchTerm) {
@@ -334,7 +336,7 @@ const getAllTechnician = async (query: IQuery) => {
     }
 
     // Default Filter Conditions
-    andConditions.push({ isDeleted: false });
+    // andConditions.push({ isDeleted: false });
 
     const allTechnicians = await prisma.technicianProfile.findMany({
         where: { AND: andConditions },
@@ -382,6 +384,6 @@ export const TechnicianService = {
     registerTechnician,
     emailVerification,
     approveTechnician,
-    getAllTechnician,
+    getPendingTechnicianApplications,
     getTechnicianProfile,
 };

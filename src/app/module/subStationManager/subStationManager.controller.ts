@@ -220,7 +220,7 @@ const assignTechnicianToOutageReport = catchAsync(
     async (req: Request, res: Response) => {
         const outageReportId = req.params.outageReportId as string;
         const user = req.user!;
-        const technicianId = req.body;
+        const { technicianId } = req.body;
 
         const result =
             await SubStationManagerServices.assignTechnicianToOutageReport(
@@ -232,7 +232,7 @@ const assignTechnicianToOutageReport = catchAsync(
         sendResponse(res, {
             success: true,
             statusCode: httpStatus.OK,
-            message: "Outage Report Approved Successful.",
+            message: "Technician Assignment To Outage Report Successful.",
             data: result,
         });
     },
