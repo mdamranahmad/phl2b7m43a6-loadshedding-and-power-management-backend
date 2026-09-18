@@ -6,7 +6,6 @@ import {
     ScheduleStatus,
 } from "../../../generated/prisma/enums.js";
 import type { IRequestUser } from "../../middleware/checkAuth.js";
-import { isAfter } from "date-fns";
 import type { IQuery } from "../../interfaces/index.js";
 import type { OutageReportWhereInput } from "../../../generated/prisma/models.js";
 

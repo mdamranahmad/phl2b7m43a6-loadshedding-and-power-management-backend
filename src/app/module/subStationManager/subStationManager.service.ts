@@ -1,7 +1,12 @@
 import { prisma } from "../../lib/prisma.js";
 import { AppError } from "../../utils/AppError.js";
 import httpStatus from "http-status";
-import { ScheduleStatus } from "../../../generated/prisma/enums.js";
+import {
+    OutageReportStatus,
+    ScheduleStatus,
+    TechnicianAvailabilityStatus,
+    TechnicianVerificationStatus,
+} from "../../../generated/prisma/enums.js";
 import type { IRequestUser } from "../../middleware/checkAuth.js";
 import type {
     IAllocateSubStationKwPayload,
@@ -9,7 +14,11 @@ import type {
 } from "./subStationManager.interface.js";
 import { isAfter } from "date-fns";
 import type { IQuery } from "../../interfaces/index.js";
-import type { ScheduleBatchWhereInput } from "../../../generated/prisma/models.js";
+import type {
+    OutageReportWhereInput,
+    ScheduleBatchWhereInput,
+    TechnicianProfileWhereInput,
+} from "../../../generated/prisma/models.js";
 
 // ==================================================
 // Allocate Kw to SubStation by SubStationManager
@@ -602,6 +611,353 @@ const getAllScheduleBatches = async (query: IQuery, user: IRequestUser) => {
     };
 };
 
+// ==================================================
+// Get Outage Reports for a  SubStation by SubStationManager
+// ==================================================
+const getOutageReports = async (query: IQuery, user: IRequestUser) => {
+    const manager = await prisma.subStationManager.findUnique({
+        where: { userId: user.userId, isDeleted: false },
+        select: {
+            id: true,
+            subStation: { select: { id: true } },
+        },
+    });
+
+    if (!manager || !manager.subStation?.id) {
+        throw new AppError(httpStatus.NOT_FOUND, "Manager Profile Not Found!");
+    }
+
+    const limit = query.limit ? Number(query.limit) : 10;
+    const page = query.page ? Number(query.page) : 1;
+    const skip = (page - 1) * limit;
+    const sortBy = query.sortBy ? query.sortBy : "createdAt";
+    const sortOrder = query.sortOrder ? query.sortOrder : "desc";
+
+    const andConditions: OutageReportWhereInput[] = [
+        {
+            subStationId: manager.subStation.id,
+            reportStatus: {
+                not: OutageReportStatus.PENDING,
+            },
+        },
+    ];
+
+    // Searching
+    if (query.searchTerm) {
+        // const searchTerm = String(query.searchTerm).trim();
+        andConditions.push({
+            OR: [
+                {
+                    ticketNo: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                { title: { contains: query.searchTerm, mode: "insensitive" } },
+                {
+                    description: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    address: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    area: {
+                        name: {
+                            contains: query.searchTerm,
+                            mode: "insensitive",
+                        },
+                    },
+                },
+                {
+                    reporter: {
+                        name: {
+                            contains: query.searchTerm,
+                            mode: "insensitive",
+                        },
+                    },
+                },
+                {
+                    technician: {
+                        name: {
+                            contains: query.searchTerm,
+                            mode: "insensitive",
+                        },
+                    },
+                },
+            ],
+        });
+    }
+
+    // Filtering
+    // if (query.batchStartTime) {
+    //     andConditions.push({ batchStartTime: query.batchStartTime });
+    // }
+
+    if (query.isAssigned) {
+        andConditions.push({ isAssigned: query.isAssigned });
+    }
+
+    if (query.isOngoing) {
+        andConditions.push({ isOngoing: query.isOngoing });
+    }
+
+    if (query.ticketNo) {
+        andConditions.push({ ticketNo: query.ticketNo });
+    }
+
+    if (query.reportStatus) {
+        andConditions.push({
+            reportStatus: query.reportStatus as OutageReportStatus,
+        });
+    }
+
+    // Default Filter Conditions
+    // andConditions.push({ isDeleted: false });
+
+    const allOutageReports = await prisma.outageReport.findMany({
+        where: { AND: andConditions },
+        take: limit,
+        skip,
+        orderBy: { [sortBy]: sortOrder },
+    });
+
+    const totalOutageReportsCount = await prisma.outageReport.count({
+        where: { AND: andConditions },
+    });
+
+    return {
+        data: allOutageReports,
+        meta: {
+            page,
+            limit,
+            total: totalOutageReportsCount,
+            totalPages: Math.ceil(totalOutageReportsCount / limit),
+        },
+    };
+};
+
+// ==================================================
+// Get Outage Report Details By Report Id for a SubStation by SubStationManager
+// ==================================================
+const getOutageReportById = async (
+    outageReportId: string,
+    user: IRequestUser,
+) => {
+    const manager = await prisma.subStationManager.findUnique({
+        where: { userId: user.userId, isDeleted: false },
+        select: {
+            id: true,
+            subStation: { select: { id: true } },
+        },
+    });
+
+    if (!manager || !manager.subStation?.id) {
+        throw new AppError(httpStatus.NOT_FOUND, "Manager Profile Not Found!");
+    }
+
+    const outageReport = await prisma.outageReport.findUnique({
+        where: {
+            id: outageReportId,
+            subStationId: manager.subStation.id,
+            NOT: { reportStatus: OutageReportStatus.PENDING },
+        },
+        include: {
+            area: true,
+            reporter: true,
+            technician: true,
+        },
+    });
+
+    if (!outageReport) {
+        throw new AppError(httpStatus.NOT_FOUND, "Outage Report Not Found!");
+    }
+
+    return outageReport;
+};
+
+// ==================================================
+// Get All Technicians for a  SubStation by SubStationManager
+// ==================================================
+const getAllTechnicians = async (query: IQuery, user: IRequestUser) => {
+    const manager = await prisma.subStationManager.findUnique({
+        where: { userId: user.userId, isDeleted: false },
+        select: {
+            id: true,
+            subStation: { select: { id: true } },
+        },
+    });
+
+    if (!manager || !manager.subStation?.id) {
+        throw new AppError(httpStatus.NOT_FOUND, "Manager Profile Not Found!");
+    }
+
+    const limit = query.limit ? Number(query.limit) : 10;
+    const page = query.page ? Number(query.page) : 1;
+    const skip = (page - 1) * limit;
+    const sortBy = query.sortBy ? query.sortBy : "createdAt";
+    const sortOrder = query.sortOrder ? query.sortOrder : "desc";
+
+    const andConditions: TechnicianProfileWhereInput[] = [
+        {
+            isDeleted: false,
+            verificationStatus: TechnicianVerificationStatus.APPROVED,
+        },
+    ];
+
+    // Searching
+    if (query.searchTerm) {
+        // const searchTerm = String(query.searchTerm).trim();
+        andConditions.push({
+            OR: [
+                {
+                    address: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                { email: { contains: query.searchTerm, mode: "insensitive" } },
+                {
+                    expertise: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    name: {
+                        contains: query.searchTerm,
+                        mode: "insensitive",
+                    },
+                },
+            ],
+        });
+    }
+
+    // Filtering
+    // if (query.batchStartTime) {
+    //     andConditions.push({ batchStartTime: query.batchStartTime });
+    // }
+
+    if (query.isAvailable) {
+        andConditions.push({ isAvailable: query.isAvailable });
+    }
+
+    // Default Filter Conditions
+    // andConditions.push({ isDeleted: false });
+
+    const allTechnicians = await prisma.technicianProfile.findMany({
+        where: { AND: andConditions },
+        take: limit,
+        skip,
+        orderBy: { [sortBy]: sortOrder },
+    });
+
+    const totalTechnicianCount = await prisma.technicianProfile.count({
+        where: { AND: andConditions },
+    });
+
+    return {
+        data: allTechnicians,
+        meta: {
+            page,
+            limit,
+            total: totalTechnicianCount,
+            totalPages: Math.ceil(totalTechnicianCount / limit),
+        },
+    };
+};
+
+// ==================================================
+// Approve Outage Report for a SubStation by SubStationManager
+// ==================================================
+const assignTechnicianToOutageReport = async (
+    outageReportId: string,
+    technicianId: string,
+    user: IRequestUser,
+) => {
+    const manager = await prisma.subStationManager.findUnique({
+        where: { userId: user.userId, isDeleted: false },
+        select: {
+            id: true,
+            subStation: { select: { id: true } },
+        },
+    });
+
+    if (!manager || !manager.subStation?.id) {
+        throw new AppError(httpStatus.NOT_FOUND, "Manager Profile Not Found!");
+    }
+
+    const isReportExists = await prisma.outageReport.findFirst({
+        where: {
+            id: outageReportId,
+            subStationId: manager.subStation.id,
+            NOT: { reportStatus: OutageReportStatus.PENDING },
+        },
+    });
+
+    if (!isReportExists) {
+        throw new AppError(httpStatus.NOT_FOUND, "Outage Report Not Found!");
+    }
+
+    if (
+        isReportExists.reportStatus !== OutageReportStatus.APPROVED &&
+        isReportExists.reportStatus !== OutageReportStatus.REOPENED
+    ) {
+        throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Only APPROVED or REOPENED outage reports can be assigned to a technician!",
+        );
+    }
+
+    const isTechnicianExists = await prisma.technicianProfile.findUnique({
+        where: {
+            id: technicianId,
+            isDeleted: false,
+            verificationStatus: TechnicianVerificationStatus.APPROVED,
+        },
+        select: { id: true, isAvailable: true },
+    });
+
+    if (!isTechnicianExists) {
+        throw new AppError(httpStatus.NOT_FOUND, "Technician Not Found!");
+    }
+
+    if (!isTechnicianExists.isAvailable) {
+        throw new AppError(
+            httpStatus.NOT_FOUND,
+            "Technician Is Not Available!",
+        );
+    }
+
+    const assignedReport = await prisma.$transaction(async (tx) => {
+        await tx.technicianProfile.update({
+            where: { id: technicianId },
+            data: { isAvailable: TechnicianAvailabilityStatus.ASSIGNED },
+        });
+
+        return await tx.outageReport.update({
+            where: { id: isReportExists.id },
+            data: {
+                reportStatus: OutageReportStatus.ASSIGNED,
+                isAssigned: true,
+                technicianId: isTechnicianExists.id,
+            },
+            include: {
+                area: true,
+                reporter: true,
+                technician: true,
+            },
+        });
+    });
+
+    return assignedReport;
+};
+
 export const SubStationManagerServices = {
     allocateSubStationKw,
     generateLoadSheddingSchedule,
@@ -610,4 +966,8 @@ export const SubStationManagerServices = {
     publishScheduleBatch,
     deleteScheduleBatch,
     getAllScheduleBatches,
+    getOutageReports,
+    getOutageReportById,
+    getAllTechnicians,
+    assignTechnicianToOutageReport,
 };

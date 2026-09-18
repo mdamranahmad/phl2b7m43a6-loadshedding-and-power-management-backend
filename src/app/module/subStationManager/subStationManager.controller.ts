@@ -155,6 +155,89 @@ const getAllScheduleBatches = catchAsync(
     },
 );
 
+// ==================================================
+// Get Outage Reports for a Zone by ZoneManager
+// ==================================================
+const getOutageReports = catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+
+    const result = await SubStationManagerServices.getOutageReports(
+        req.query,
+        user,
+    );
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Fetch Outage Reports Successful.",
+        data: result,
+    });
+});
+
+// ==================================================
+// Get Outage Report Details By Report Id for a Zone by ZoneManager
+// ==================================================
+const getOutageReportById = catchAsync(async (req: Request, res: Response) => {
+    const outageReportId = req.params.outageReportId as string;
+    const user = req.user!;
+
+    const result = await SubStationManagerServices.getOutageReportById(
+        outageReportId,
+        user,
+    );
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Fetch Outage Report Details Successful.",
+        data: result,
+    });
+});
+
+// ==================================================
+// Get All Technicians for a  SubStation by SubStationManager
+// ==================================================
+const getAllTechnicians = catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const { data, meta } = await SubStationManagerServices.getAllTechnicians(
+        req.query,
+        user,
+    );
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "All Technician Profile Fetch Successful.",
+        data: data,
+        meta: meta,
+    });
+});
+
+// ==================================================
+// Approve Outage Report for a Zone by ZoneManager
+// ==================================================
+const assignTechnicianToOutageReport = catchAsync(
+    async (req: Request, res: Response) => {
+        const outageReportId = req.params.outageReportId as string;
+        const user = req.user!;
+        const technicianId = req.body;
+
+        const result =
+            await SubStationManagerServices.assignTechnicianToOutageReport(
+                outageReportId,
+                technicianId,
+                user,
+            );
+
+        sendResponse(res, {
+            success: true,
+            statusCode: httpStatus.OK,
+            message: "Outage Report Approved Successful.",
+            data: result,
+        });
+    },
+);
+
 export const SubStationManagerController = {
     allocateSubStationKw,
     generateLoadSheddingSchedule,
@@ -163,4 +246,8 @@ export const SubStationManagerController = {
     publishScheduleBatch,
     deleteScheduleBatch,
     getAllScheduleBatches,
+    getOutageReports,
+    getOutageReportById,
+    getAllTechnicians,
+    assignTechnicianToOutageReport,
 };

@@ -47,4 +47,28 @@ router.get(
     SubStationManagerController.getAllScheduleBatches,
 );
 
+router.get(
+    "/get-outage-reports",
+    auth(Role.SUBSTATION_MANAGER),
+    SubStationManagerController.getOutageReports,
+);
+
+router.get(
+    "/get-outage-reports/:outageReportId",
+    auth(Role.SUBSTATION_MANAGER),
+    SubStationManagerController.getOutageReportById,
+);
+
+router.get(
+    "/get-all-technicians",
+    auth(Role.SUBSTATION_MANAGER),
+    SubStationManagerController.getAllTechnicians,
+);
+
+router.post(
+    "/get-outage-reports/:outageReportId",
+    auth(Role.SUBSTATION_MANAGER),
+    SubStationManagerController.assignTechnicianToOutageReport,
+);
+
 export const SubStationManagerRoute = router;
