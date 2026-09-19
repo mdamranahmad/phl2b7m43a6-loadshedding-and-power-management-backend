@@ -130,6 +130,16 @@ const emailVerification = async (
     const customerPayload: ICustomerEmailVerifiyPayload =
         JSON.parse(redisCustomerData);
 
+    const getHouse = await prisma.house.findFirst({
+        where: { customerId: null },
+        orderBy: { name: "asc" },
+        select: { id: true },
+    });
+
+    if (!getHouse) {
+        throw new AppError(httpStatus.NOT_FOUND, "House Not Found!");
+    }
+
     const createdCustomer = await prisma.user.create({
         data: {
             name: customerPayload.name,
@@ -143,6 +153,7 @@ const emailVerification = async (
                     name: customerPayload.name,
                     email: customerPayload.email,
                     meterNumber: customerPayload.customerProfile.meterNumber,
+                    houses: { connect: { id: getHouse.id } },
                 },
             },
         },
