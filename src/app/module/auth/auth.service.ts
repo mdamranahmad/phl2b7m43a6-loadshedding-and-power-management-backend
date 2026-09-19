@@ -130,6 +130,7 @@ const emailVerification = async (
     const customerPayload: ICustomerEmailVerifiyPayload =
         JSON.parse(redisCustomerData);
 
+        // This part will be fixed later, customer will apply for connection with house and meter number
     const getHouse = await prisma.house.findFirst({
         where: { customerId: null },
         orderBy: { name: "asc" },

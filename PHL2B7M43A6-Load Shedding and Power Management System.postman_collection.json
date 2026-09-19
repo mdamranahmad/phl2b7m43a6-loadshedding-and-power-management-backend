@@ -1,0 +1,1047 @@
+{
+  "info": {
+    "_postman_id": "08750775-b402-411b-ac46-fcf6bff69fb7",
+    "name": "PHL2B7M43A6-Load Shedding and Power Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54842332",
+    "_collection_link": "https://go.postman.co/collection/54842332-08750775-b402-411b-ac46-fcf6bff69fb7?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Customer Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// {\r\n//  \"name\": \"Md Amran Ahmad\",\r\n//  \"email\": \"imran.btc28@gmail.com\",\r\n//  \"password\": \"123456Aa\",\r\n//  \"customerProfile\": {\r\n//  \"meterNumber\": \"123 456 789 01\"\r\n//  }\r\n// }\r\n\r\n{\r\n \"name\": \"Mr Ahmad\",\r\n \"email\": \"imugeb@gmail.com\",\r\n \"password\": \"123456Aa\",\r\n \"customerProfile\": {\r\n \"meterNumber\": \"123 456 789 02\"\r\n }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Customer Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// {\r\n//  \"email\": \"imran.btc28@gmail.com\",\r\n//  \"password\": \"123456Aa\"\r\n// }\r\n{\r\n \"email\": \"imugeb@gmail.com\",\r\n \"password\": \"123456Aa\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Technician Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n \"email\": \"imran.btc28@gmail.com\",\r\n \"password\": \"123456Aa\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Zone Manager Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n \"email\": \"zonemanager01@email.com\",\r\n \"password\": \"Zone@manager12345\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SubStation Manager Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n \"email\": \"substationmanager01@email.com\",\r\n \"password\": \"Substation@manager12345\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token Generation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh-token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/get-me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "get-me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Customer Email Verification",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n \"email\": \"imran.btc28@gmail.com\",\r\n \"otp\": \"421993\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email-verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "email-verify"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Technician",
+      "item": [
+        {
+          "name": "Apply as Technician",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\n    \"name\": \"Technician 01\",\n    \"email\": \"ahmad.prov0@gmail.com\",\n    \"password\": \"123456Aa\",\n    \"role\": \"TECHNICIAN\",\n    \"address\": \"Address Tech 01\",\n    \"expertise\": \"Expertise Tech 01\",\n    \"experienceYear\": 3\n}",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "resume",
+                  "type": "file",
+                  "src": [
+                    "/C:/Users/Shanta/Downloads/AI-Driven Full Stack Web Engineering Curriculum-Batch 14.pdf"
+                  ]
+                },
+                {
+                  "key": "data",
+                  "value": "{\n    \"name\": \"Technician 02\",\n    \"email\": \"imusust@gmail.com\",\n    \"password\": \"123456Aa\",\n    \"role\": \"TECHNICIAN\",\n    \"address\": \"Address Tech 02\",\n    \"expertise\": \"Expertise Tech 02\",\n    \"experienceYear\": 3\n}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/technician/apply-as-technician",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician",
+                "apply-as-technician"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Technician Email Verification",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n \"email\": \"ahmad.prov0@gmail.com\",\r\n \"otp\": \"757774\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/technician/email-verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician",
+                "email-verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Technician Application",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/technician/get-pending-tech-application",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician",
+                "get-pending-tech-application"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Assignments for a Technician",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/technician/get-pending-tech-application",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician",
+                "get-pending-tech-application"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve Assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/technician/get-assignments/cc1d5b3a-2b06-4e0e-94a5-ef9dd00e7a4e",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician",
+                "get-assignments",
+                "cc1d5b3a-2b06-4e0e-94a5-ef9dd00e7a4e"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Technician Application",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"technicianId\": \"301d678d-bafd-4f31-bdfc-e39f61496743\",\r\n    \"verificationStatus\" : \"APPROVED\",\r\n    \"rejectReason\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/technician/approve-technician",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician",
+                "approve-technician"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Technician Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/technician/301d678d-bafd-4f31-bdfc-e39f61496743",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "technician",
+                "301d678d-bafd-4f31-bdfc-e39f61496743"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Request Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"rechargeAmount\" : 2000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/request-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "request-token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Tokens",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/get-my-tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "get-my-tokens"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Load Shedding Schedules",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/get-loadshedding-schedule?searchTerm=area01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "get-loadshedding-schedule"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "3",
+                  "disabled": true
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "area01"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pay Unpaid Tokens",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/get-my-tokens/fed15665-ea20-4591-b911-ea08049e86ed",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "get-my-tokens",
+                "fed15665-ea20-4591-b911-ea08049e86ed"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recharge Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"TokenNo\" : \"6935-2564-4430-9257-4108\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/recharge-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "recharge-token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Report Outage",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// {\r\n//     \"OutageSeverity\": \"TOTAL_BLACKOUT\",\r\n//     \"issueTitle\": \"Issue 01 User 01\",\r\n//     \"description\": \"Description of Issue 01\",\r\n//     \"outageStartTime\": \"now\",\r\n//     \"address\": \"Issue Address\"\r\n// }\r\n{\r\n    \"OutageSeverity\": \"TOTAL_BLACKOUT\",\r\n    \"issueTitle\": \"Issue 02 User 02\",\r\n    \"description\": \"Description of Issue 02\",\r\n    \"outageStartTime\": \"now\",\r\n    \"address\": \"Issue Address\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/report-outage",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "report-outage"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SubStationManager",
+      "item": [
+        {
+          "name": "Allocate Kw SubStation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\"capacityKw\" : \"80 Kw\",\r\n\"allocatedKw\" : \"60 Kw\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/allocate-kw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "allocate-kw"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Schedule",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\"capacityKw\" : 80,\r\n\"allocatedKw\" : 60,\r\n\"scheduleDuration\" : 86400,\r\n\"outageSlotDuration\": 3600,\r\n\"batchStartTime\": \"2026-09-17T00:00:00.000Z\",\r\n\"batchEndTime\": \"2026-09-18T00:00:00.000Z\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/generate-schedule",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "generate-schedule"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Schedule Batches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/get-schedule-batches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "get-schedule-batches"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Zone Schedule Batches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/zone/get-schedule-batches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "zone",
+                "get-schedule-batches"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Outage Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/get-outage-reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "get-outage-reports"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Technicians",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/get-all-technicians",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "get-all-technicians"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Outage Report By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/get-outage-reports/383c7110-21d3-4623-8a12-7bbaa20adc82",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "get-outage-reports",
+                "383c7110-21d3-4623-8a12-7bbaa20adc82"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Technician To Outage Report",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"technicianId\" : \"56bece1a-bf1a-4159-b01e-0737b22fddc8\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/get-outage-reports/cc1d5b3a-2b06-4e0e-94a5-ef9dd00e7a4e",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "get-outage-reports",
+                "cc1d5b3a-2b06-4e0e-94a5-ef9dd00e7a4e"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Schedule Batche By BatchId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/get-schedule-batches/4032df36-6978-46d0-a858-a1d89c8c0906",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "get-schedule-batches",
+                "4032df36-6978-46d0-a858-a1d89c8c0906"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Publish Schedule Batch",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/get-schedule-batches/4032df36-6978-46d0-a858-a1d89c8c0906",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "get-schedule-batches",
+                "4032df36-6978-46d0-a858-a1d89c8c0906"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Schedule Batch",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subStationManager/get-schedule-batches/4032df36-6978-46d0-a858-a1d89c8c0906",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subStationManager",
+                "get-schedule-batches",
+                "4032df36-6978-46d0-a858-a1d89c8c0906"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "ZoneManager",
+      "item": [
+        {
+          "name": "Get Outage Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/zonalManager/get-outage-reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "zonalManager",
+                "get-outage-reports"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Outage Report By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/zonalManager/get-outage-reports/cc1d5b3a-2b06-4e0e-94a5-ef9dd00e7a4e",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "zonalManager",
+                "get-outage-reports",
+                "cc1d5b3a-2b06-4e0e-94a5-ef9dd00e7a4e"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Outage Report",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/zonalManager/get-outage-reports/383c7110-21d3-4623-8a12-7bbaa20adc82",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "zonalManager",
+                "get-outage-reports",
+                "383c7110-21d3-4623-8a12-7bbaa20adc82"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Zonal Manager Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/zonal-manager-analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "zonal-manager-analytics"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get SubStation Manager Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/substation-manager-analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "substation-manager-analytics"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Technician Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/substation-manager-analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "substation-manager-analytics"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/substation-manager-analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "substation-manager-analytics"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "",
+      "disabled": true
+    },
+    {
+      "key": "baseUrl",
+      "value": ""
+    }
+  ]
+}
