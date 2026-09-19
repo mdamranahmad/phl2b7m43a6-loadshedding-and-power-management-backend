@@ -23,7 +23,7 @@ router.post(
 
 router.get("/get-my-tokens", auth(Role.CUSTOMER), UserController.getMyTokens);
 
-router.post(
+router.patch(
     "/get-my-tokens/:tokenId",
     auth(Role.CUSTOMER),
     UserController.payUnPaidToken,

@@ -26,7 +26,7 @@ router.get(
     TechnicianController.getAssignments,
 );
 
-router.post(
+router.patch(
     "/approve-technician",
     auth(Role.ZONE_MANAGER, Role.SUBSTATION_MANAGER),
     TechnicianController.approveTechnician,
@@ -38,7 +38,7 @@ router.get(
     TechnicianController.getPendingTechnicianApplications,
 );
 
-router.post(
+router.patch(
     "/get-assignments/:outageReportId",
     auth(Role.TECHNICIAN),
     TechnicianController.resolveAssignment,

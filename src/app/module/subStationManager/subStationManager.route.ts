@@ -29,7 +29,7 @@ router.get(
     SubStationManagerController.getScheduleBatcheById,
 );
 
-router.post(
+router.patch(
     "/get-schedule-batches/:scheduleBatchId",
     auth(Role.SUBSTATION_MANAGER),
     SubStationManagerController.publishScheduleBatch,
@@ -65,7 +65,7 @@ router.get(
     SubStationManagerController.getAllTechnicians,
 );
 
-router.post(
+router.patch(
     "/get-outage-reports/:outageReportId",
     auth(Role.SUBSTATION_MANAGER),
     SubStationManagerController.assignTechnicianToOutageReport,
