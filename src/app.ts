@@ -17,6 +17,7 @@ import { UserRoutes } from "./app/module/user/user.route.js";
 import { SubStationManagerRoute } from "./app/module/subStationManager/subStationManager.route.js";
 import { SubStationManagerServices } from "./app/module/subStationManager/subStationManager.service.js";
 import { ZoneManagerRoutes } from "./app/module/zonalManager/zonalManager.route.js";
+import { AnalyticsRoutes } from "./app/module/analytics/analytics.route.js";
 
 const app: Express = express();
 
@@ -43,6 +44,7 @@ app.use("/api/v1/technician", TechnicianRoute);
 app.use("/api/v1/user", UserRoutes);
 app.use("/api/v1/subStationManager", SubStationManagerRoute);
 app.use("/api/v1/zonalManager", ZoneManagerRoutes);
+app.use("/api/v1/analytics", AnalyticsRoutes);
 
 app.get("/", (req: Request, res: Response) => {
     sendResponse(res, {
